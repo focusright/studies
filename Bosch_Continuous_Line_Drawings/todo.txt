@@ -1,9 +1,10 @@
-.make another image which is made of k by k boxes of random grayscale between 0 to 255
-.find line drawing api for python
+.draw points to resembling the picture
+    .compute the mean grayscale for each k square
+    .map that value to k by k
+    .generate that many random points in the k square
+
 
 .study OR tools TSP enough to use it on 2D coordinates
-
-
 
 .Run TSP concorde with qsopt on Windows
 .Compile GLPK or SCIP to wasm, which ever one works best

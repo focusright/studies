@@ -8,7 +8,7 @@ width, height = im.size
 px = im.load()
 #print(px[40,40])
 #print(width, height)
-K = math.gcd(width, height)
+K = math.gcd(width, height)//49
 M = height // K #km rows of pixels
 N = width // K  #kn columns of pixels
 #print(K)
@@ -22,9 +22,22 @@ for m in range(M):
         we = ws + K # width end
         hs = K * m  # height start
         he = hs + K # height end
-        r = random.randint(0, 255)
+        sum = 0
         for i in range(ws, we):
             for j in range(hs, he):
-                draw.point((i, j), r)
+                sum += px[i, j]
+        sum //= (K*K)
+        #print(sum)
+        points = set()
+        for mgv in range(sum): #mean grayscale value
+            ri = random.randint(ws, we)
+            rj = random.randint(hs, he)
+            points.add((ri, rj))
+        pr = 10 #point radius
+        for p in points:
+            draw.point((p[0], p[1]), 0)
+            #draw.ellipse([p[0], p[1], p[0]+pr, p[1]+pr], 0)
+            #print(p[0], p[1])
+
 
 ni.show()
