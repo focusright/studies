@@ -1,0 +1,5 @@
+git commit -m "message"
+git tag -a v0.1 -m "message"
+git tag -l
+git push --follow-tags
+git push origin master

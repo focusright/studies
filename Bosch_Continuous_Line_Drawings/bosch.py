@@ -1,43 +1,22 @@
 from PIL import Image, ImageDraw
-import math, random
+import sys
+import helper
 
-im = Image.open( 'wall.jpg' )
+im = Image.open(sys.argv[1])
 im = im.convert('L') # convert to grayscale
 #im.save('greyscale.png')
 width, height = im.size
 px = im.load()
-#print(px[40,40])
-#print(width, height)
-K = math.gcd(width, height)//49
-M = height // K #km rows of pixels
-N = width // K  #kn columns of pixels
-#print(K)
+
+if len(sys.argv) == 3:
+    helper.MAX_CITIES = int(sys.argv[2])
 
 ni = Image.new('L', (width, height), 255) #ni = new image
-draw = ImageDraw.Draw(ni)
+drawer = ImageDraw.Draw(ni)
 
-for m in range(M):
-    for n in range(N):
-        ws = K * n  # width start
-        we = ws + K # width end
-        hs = K * m  # height start
-        he = hs + K # height end
-        sum = 0
-        for i in range(ws, we):
-            for j in range(hs, he):
-                sum += px[i, j]
-        sum //= (K*K)
-        #print(sum)
-        points = set()
-        for mgv in range(sum): #mean grayscale value
-            ri = random.randint(ws, we)
-            rj = random.randint(hs, he)
-            points.add((ri, rj))
-        pr = 10 #point radius
-        for p in points:
-            draw.point((p[0], p[1]), 0)
-            #draw.ellipse([p[0], p[1], p[0]+pr, p[1]+pr], 0)
-            #print(p[0], p[1])
+K, M, N = helper.scale_k(px, height, width, drawer)
+#print (K, M, N)
+helper.render(px, K, M, N, drawer)
 
 
 ni.show()

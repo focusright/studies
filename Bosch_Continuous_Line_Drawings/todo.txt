@@ -1,3 +1,7 @@
+.separate main function into a different file
+.scale k to something less than 80k for the TSP solver
+.use command line to input image filename
+
 .draw points to resembling the picture
     .compute the mean grayscale for each k square
     .map that value to k by k
