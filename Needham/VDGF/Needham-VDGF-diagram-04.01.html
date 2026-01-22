@@ -225,9 +225,121 @@ label("θ", new THREE.Vector3(-0.3, 0.15, 0.2));
 labelBox("<span style='position:relative'>ds<span style='position:absolute;left:0;right:0;top:-0.5em;text-align:center'>^</span></span>", new THREE.Vector3(-1.2, 0.5, 1.5));
 
 // ds label box (left side of plane)
-labelBox("ds", new THREE.Vector3(-1.5, 0.35, 2.5));
+const dsPos = new THREE.Vector3(-1.5, 0.35, 2.5);
+labelBox("ds", dsPos);
+
+// Arc arrow from ds labelbox to center of dz
+//const dsArrowStart = dsPos.clone().add(new THREE.Vector3(0, -0.1, 0));
+//const dsArrowEnd = dzPos.clone().add(new THREE.Vector3(0, 0, 0));
+//scene.add(flatArcArrow(dsArrowStart, dsArrowEnd, 0xffffff, 0.02, 0.2, 0.05, 0.5, new THREE.Vector3(1, 1, 0)));
 
 //Helper functions
+function flatArcArrow(start, end, color = 0xffffff, shaftWidth = 0.02, headLen = 0.2, headWidth = 0.05, arcHeight = 0.1, bendPlane = null) {
+  const group = new THREE.Group();
+  const dir = end.clone().sub(start);
+  const len = dir.length();
+  const dirNorm = dir.clone().normalize();
+  const shaftEnd = start.clone().add(dirNorm.clone().multiplyScalar(len - headLen));
+  
+  // Define up vector for perpendicular calculations (used throughout function)
+  const up = new THREE.Vector3(0, 1, 0);
+  
+  // Calculate perpendicular vector for bending
+  let perp;
+  if (bendPlane instanceof THREE.Vector3) {
+    // Use provided bend plane direction (e.g., for XY bending)
+    // Project bendPlane onto plane perpendicular to dirNorm
+    const bendPlaneNorm = bendPlane.clone().normalize();
+    const proj = bendPlaneNorm.clone().sub(dirNorm.clone().multiplyScalar(bendPlaneNorm.dot(dirNorm)));
+    if (proj.length() < 0.001) {
+      // If bendPlane is parallel to dir, use default
+      perp = dirNorm.clone().cross(up);
+      if (perp.length() < 0.001) {
+        perp = dirNorm.clone().cross(new THREE.Vector3(1, 0, 0));
+      }
+    } else {
+      perp = proj.normalize();
+    }
+  } else {
+    // Default: calculate perpendicular vector in 3D space
+    perp = dirNorm.clone().cross(up);
+    if (perp.length() < 0.001) {
+      // If dir is parallel to up, use a different reference
+      perp = dirNorm.clone().cross(new THREE.Vector3(1, 0, 0));
+    }
+  }
+  perp.normalize();
+  
+  // Use sign of arcHeight to determine bend direction
+  const bendSign = arcHeight >= 0 ? 1 : -1;
+  
+  // Arc body (curved from start to shaftEnd) - works in 3D
+  const midPoint = start.clone().add(dirNorm.clone().multiplyScalar(len / 2 - headLen / 2));
+  const arcControl = midPoint.clone().add(perp.clone().multiplyScalar(Math.abs(arcHeight) * bendSign));
+  
+  // Create arc points using quadratic Bezier curve in 3D
+  const arcPts = [];
+  for (let i = 0; i <= 32; i++) {
+    const t = i / 32;
+    const pt = new THREE.Vector3();
+    pt.x = (1-t)*(1-t)*start.x + 2*(1-t)*t*arcControl.x + t*t*shaftEnd.x;
+    pt.y = (1-t)*(1-t)*start.y + 2*(1-t)*t*arcControl.y + t*t*shaftEnd.y;
+    pt.z = (1-t)*(1-t)*start.z + 2*(1-t)*t*arcControl.z + t*t*shaftEnd.z;
+    arcPts.push(pt);
+  }
+  // Add one more point extending past shaftEnd to close gap with head
+  const lastSegDir = shaftEnd.clone().sub(arcPts[arcPts.length - 2]).normalize();
+  const overlapPt = shaftEnd.clone().add(lastSegDir.clone().multiplyScalar(0.05));
+  arcPts.push(overlapPt);
+  
+  // Create ribbon geometry along the arc - proper 3D perpendiculars
+  const shaftVerts = [];
+  for (let i = 0; i < arcPts.length - 1; i++) {
+    const p1 = arcPts[i];
+    const p2 = arcPts[i + 1];
+    const segDir = p2.clone().sub(p1).normalize();
+    // Calculate perpendicular in 3D using cross product
+    let segPerp = segDir.clone().cross(up);
+    if (segPerp.length() < 0.001) {
+      segPerp = segDir.clone().cross(new THREE.Vector3(1, 0, 0));
+    }
+    segPerp.normalize();
+    const w1 = p1.clone().add(segPerp.clone().multiplyScalar(shaftWidth / 2));
+    const w2 = p1.clone().sub(segPerp.clone().multiplyScalar(shaftWidth / 2));
+    const w3 = p2.clone().sub(segPerp.clone().multiplyScalar(shaftWidth / 2));
+    const w4 = p2.clone().add(segPerp.clone().multiplyScalar(shaftWidth / 2));
+    
+    shaftVerts.push(w1.x, w1.y, w1.z, w2.x, w2.y, w2.z, w3.x, w3.y, w3.z);
+    shaftVerts.push(w1.x, w1.y, w1.z, w3.x, w3.y, w3.z, w4.x, w4.y, w4.z);
+  }
+  
+  const shaftGeo = new THREE.BufferGeometry();
+  shaftGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(shaftVerts), 3));
+  const shaft = new THREE.Mesh(shaftGeo, new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide, depthTest: false }));
+  shaft.renderOrder = 999;
+  group.add(shaft);
+  
+  // Head (flat triangle at end) - align with arc tangent at shaftEnd
+  // lastSegDir already calculated above
+  const tip = shaftEnd.clone().add(lastSegDir.clone().multiplyScalar(headLen));
+  let lastPerp = lastSegDir.clone().cross(up);
+  if (lastPerp.length() < 0.001) {
+    lastPerp = lastSegDir.clone().cross(new THREE.Vector3(1, 0, 0));
+  }
+  lastPerp.normalize();
+  const base1 = shaftEnd.clone().add(lastPerp.clone().multiplyScalar(headWidth));
+  const base2 = shaftEnd.clone().sub(lastPerp.clone().multiplyScalar(headWidth));
+  const headGeo = new THREE.BufferGeometry();
+  headGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array([
+    tip.x, tip.y, tip.z, base1.x, base1.y, base1.z, base2.x, base2.y, base2.z
+  ]), 3));
+  const head = new THREE.Mesh(headGeo, new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide, depthTest: false }));
+  head.renderOrder = 999;
+  group.add(head);
+  
+  return group;
+}
+
 function flatArrow(start, end, color = 0xffffff, shaftWidth = 0.03, headLen = 0.15, headWidth = 0.08) {
   const group = new THREE.Group();
   const dir = end.clone().sub(start);
@@ -257,78 +369,6 @@ function flatArrow(start, end, color = 0xffffff, shaftWidth = 0.03, headLen = 0.
   const headGeo = new THREE.BufferGeometry();
   headGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array([
     tip.x, tip.y + 0.01, tip.z, base1.x, base1.y + 0.01, base1.z, base2.x, base2.y + 0.01, base2.z
-  ]), 3));
-  const head = new THREE.Mesh(headGeo, new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide, depthTest: false }));
-  head.renderOrder = 999;
-  group.add(head);
-  
-  return group;
-}
-
-function flatArcArrow(start, end, color = 0xffffff, shaftWidth = 0.02, headLen = 0.2, headWidth = 0.05, arcHeight = 0.1) {
-  const group = new THREE.Group();
-  const dir = end.clone().sub(start);
-  const len = dir.length();
-  const dirNorm = dir.clone().normalize();
-  const perp = new THREE.Vector3(-dirNorm.z, 0, dirNorm.x).normalize();
-  const shaftEnd = start.clone().add(dirNorm.clone().multiplyScalar(len - headLen));
-  
-  // Arc body (curved from start to shaftEnd) - use consistent y from start
-  const yPos = start.y + 0.01;
-  const midPoint = start.clone().add(dirNorm.clone().multiplyScalar(len / 2 - headLen / 2));
-  midPoint.y = yPos;
-  const arcControl = midPoint.clone().add(perp.clone().multiplyScalar(arcHeight));
-  arcControl.y = yPos;
-  
-  // Create arc points using quadratic Bezier curve
-  const arcPts = [];
-  for (let i = 0; i <= 32; i++) {
-    const t = i / 32;
-    const pt = new THREE.Vector3();
-    pt.x = (1-t)*(1-t)*start.x + 2*(1-t)*t*arcControl.x + t*t*shaftEnd.x;
-    pt.y = yPos;
-    pt.z = (1-t)*(1-t)*start.z + 2*(1-t)*t*arcControl.z + t*t*shaftEnd.z;
-    arcPts.push(pt);
-  }
-  // Add one more point extending past shaftEnd to close gap with head
-  const lastSegDir = shaftEnd.clone().sub(arcPts[arcPts.length - 2]).normalize();
-  const overlapPt = shaftEnd.clone().add(lastSegDir.clone().multiplyScalar(0.05));
-  overlapPt.y = yPos;
-  arcPts.push(overlapPt);
-  
-  // Create ribbon geometry along the arc - use consistent perpendicular in x-z plane
-  const shaftVerts = [];
-  for (let i = 0; i < arcPts.length - 1; i++) {
-    const p1 = arcPts[i];
-    const p2 = arcPts[i + 1];
-    const segDir = p2.clone().sub(p1).normalize();
-    // Perpendicular in x-z plane (same as flatArrow)
-    const segPerp = new THREE.Vector3(-segDir.z, 0, segDir.x).normalize();
-    const w1 = p1.clone().add(segPerp.clone().multiplyScalar(shaftWidth / 2));
-    const w2 = p1.clone().sub(segPerp.clone().multiplyScalar(shaftWidth / 2));
-    const w3 = p2.clone().sub(segPerp.clone().multiplyScalar(shaftWidth / 2));
-    const w4 = p2.clone().add(segPerp.clone().multiplyScalar(shaftWidth / 2));
-    
-    shaftVerts.push(w1.x, w1.y, w1.z, w2.x, w2.y, w2.z, w3.x, w3.y, w3.z);
-    shaftVerts.push(w1.x, w1.y, w1.z, w3.x, w3.y, w3.z, w4.x, w4.y, w4.z);
-  }
-  
-  const shaftGeo = new THREE.BufferGeometry();
-  shaftGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(shaftVerts), 3));
-  const shaft = new THREE.Mesh(shaftGeo, new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide, depthTest: false }));
-  shaft.renderOrder = 999;
-  group.add(shaft);
-  
-  // Head (flat triangle at end) - align with arc tangent at shaftEnd
-  // lastSegDir already calculated above
-  const tip = shaftEnd.clone().add(lastSegDir.clone().multiplyScalar(headLen));
-  tip.y = yPos;
-  const lastPerp = new THREE.Vector3(-lastSegDir.z, 0, lastSegDir.x).normalize();
-  const base1 = shaftEnd.clone().add(lastPerp.clone().multiplyScalar(headWidth));
-  const base2 = shaftEnd.clone().sub(lastPerp.clone().multiplyScalar(headWidth));
-  const headGeo = new THREE.BufferGeometry();
-  headGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array([
-    tip.x, tip.y, tip.z, base1.x, base1.y, base1.z, base2.x, base2.y, base2.z
   ]), 3));
   const head = new THREE.Mesh(headGeo, new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide, depthTest: false }));
   head.renderOrder = 999;
@@ -389,6 +429,7 @@ function circle(pos, normal, color = 0xffffff, radius = 0.06, tubeRadius = 0.012
   
   return torus;
 }
+
 function line(a, b, color = 0xffffff) {
   const group = new THREE.Group();
   const points = [a, b];
@@ -414,6 +455,7 @@ function line(a, b, color = 0xffffff) {
   group.renderOrder = 1;
   return group;
 }
+
 function label(text, pos) {
   const div = document.createElement("div");
   div.className = "label";
@@ -433,6 +475,7 @@ function labelBox(text, pos) {
   lbl.scale.setScalar(0.01);
   scene.add(lbl);
 }
+
 function labelLarge(text, pos) {
   const div = document.createElement("div");
   div.className = "label";
