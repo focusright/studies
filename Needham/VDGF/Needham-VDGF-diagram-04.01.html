@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Needham p.32 – Central Projection Metric</title>
+<style>
+html,body{margin:0;height:100%;background:#000;overflow:hidden}
+.label{
+  color:#ccc;font-size:13px;font-family:Georgia,serif;font-style:italic;
+  text-shadow:0 0 8px #000,0 0 3px #000;
+  pointer-events:none;
+}
+.label-box{
+  color:#aaa;font-size:12px;font-family:Georgia,serif;font-style:italic;
+  background:rgba(30,30,30,.85);
+  border:1px solid rgba(150,150,150,.5);
+  border-radius:4px;padding:2px 8px;
+  text-shadow:0 0 4px #000;
+}
+</style>
+</head>
+<body>
+<script type="module">
+import * as THREE from "https://esm.sh/three@0.160.0";
+import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+import { CSS2DRenderer, CSS2DObject } from "https://esm.sh/three@0.160.0/examples/jsm/renderers/CSS2DRenderer.js";
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x000000);
+
+const camera = new THREE.PerspectiveCamera(40,innerWidth/innerHeight,0.01,100);
+camera.position.set(-8,5,10);
+
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth,innerHeight);
+document.body.appendChild(renderer.domElement);
+
+const labelRenderer = new CSS2DRenderer();
+labelRenderer.setSize(innerWidth,innerHeight);
+labelRenderer.domElement.style.position="absolute";
+labelRenderer.domElement.style.top="0";
+labelRenderer.domElement.style.pointerEvents="none";
+document.body.appendChild(labelRenderer.domElement);
+
+const controls = new OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true;
+controls.target.set(0,1,0);
+
+scene.add(new THREE.AmbientLight(0xffffff,.5));
+const dl = new THREE.DirectionalLight(0xffffff,.6);
+dl.position.set(5,10,8);
+scene.add(dl);
+
+const R = 2; // hemisphere radius
+
+/* ========== TANGENT PLANE ========== */
+const planeGeo = new THREE.PlaneGeometry(12,8);
+const planeMat = new THREE.MeshStandardMaterial({
+  color:0x1a1a1a,
+  side:THREE.DoubleSide,
+  metalness:0.1,
+  roughness:0.9
+});
+const plane = new THREE.Mesh(planeGeo,planeMat);
+plane.rotation.x = -Math.PI/2;
+plane.position.y = 0;
+scene.add(plane);
+label("(complex)\ntangent plane", new THREE.Vector3(3.5,0.05,-2), true);
+
+/* ========== HEMISPHERE (bowl-up) ========== */
+// The hemisphere sits with its flat base on the plane, bowl opening upward
+const hemiGeo = new THREE.SphereGeometry(R,64,32,0,Math.PI*2,0,Math.PI/2);
+const hemiMat = new THREE.MeshStandardMaterial({
+  color:0x4a4a4a,
+  transparent:true,
+  opacity:0.4,
+  side:THREE.DoubleSide,
+  metalness:0.3,
+  roughness:0.7
+});
+const hemi = new THREE.Mesh(hemiGeo,hemiMat);
+hemi.rotation.x = Math.PI; // flip so bowl opens upward
+hemi.position.y = R; // center at height R so base touches plane
+scene.add(hemi);
+
+/* Rim at top of hemisphere */
+const rimPts = [...Array(128)].map((_,i)=>{
+  const a = i/128*Math.PI*2;
+  return new THREE.Vector3(R*Math.cos(a), R*2, R*Math.sin(a));
+});
+rimPts.push(rimPts[0]);
+const rim = new THREE.Line(
+  new THREE.BufferGeometry().setFromPoints(rimPts),
+  new THREE.LineBasicMaterial({color:0xcccccc})
+);
+scene.add(rim);
+
+/* Base circle (where hemisphere meets plane) */
+const basePts = [...Array(128)].map((_,i)=>{
+  const a = i/128*Math.PI*2;
+  return new THREE.Vector3(R*Math.cos(a), 0.01, R*Math.sin(a));
+});
+basePts.push(basePts[0]);
+const baseCircle = new THREE.Line(
+  new THREE.BufferGeometry().setFromPoints(basePts),
+  new THREE.LineBasicMaterial({color:0x666666})
+);
+scene.add(baseCircle);
+
+/* ========== KEY POINTS ========== */
+
+// O - origin at center of base
+const O = new THREE.Vector3(0, 0, 0);
+scene.add(point(O, 0xffffff, 0.04));
+label("O", O.clone().add(new THREE.Vector3(0.15, 0.1, 0.1)));
+
+// c - point on the rim (top)
+const cAngle = 0.4;
+const cPt = new THREE.Vector3(R*Math.cos(cAngle), R*2, R*Math.sin(cAngle));
+scene.add(point(cPt, 0xffffff, 0.05));
+label("c", cPt.clone().add(new THREE.Vector3(0.1, 0.15, 0)));
+
+// C - projection center (inside hemisphere, on the axis)
+const C = new THREE.Vector3(0, R*1.5, 0);
+scene.add(point(C, 0xffffff, 0.06));
+label("C", C.clone().add(new THREE.Vector3(-0.2, 0.1, 0)));
+
+/* ========== POINTS ON HEMISPHERE AND THEIR PROJECTIONS ========== */
+
+// Function to get point on hemisphere surface given spherical coords
+function hemispherePoint(theta, phi) {
+  // phi from 0 (top) to PI/2 (equator/base)
+  const y = R*2 - R*(1 - Math.cos(phi));
+  const r = R*Math.sin(phi);
+  return new THREE.Vector3(r*Math.cos(theta), y, r*Math.sin(theta));
+}
+
+// Function to project from C through point p onto y=0 plane
+function projectToPlane(p) {
+  const dir = p.clone().sub(C);
+  const t = -C.y / dir.y;
+  return C.clone().add(dir.multiplyScalar(t));
+}
+
+// ẑ - point on hemisphere
+const zHat = hemispherePoint(-0.6, 0.7);
+scene.add(point(zHat, 0xffffff, 0.04));
+label("ẑ", zHat.clone().add(new THREE.Vector3(0.05, 0.15, 0.05)));
+
+// z - projection of ẑ onto plane
+const z = projectToPlane(zHat);
+scene.add(point(z, 0xffffff, 0.04));
+label("z", z.clone().add(new THREE.Vector3(-0.2, 0.05, -0.15)));
+
+// q̂ - another point on hemisphere
+const qHat = hemispherePoint(-0.4, 0.5);
+scene.add(point(qHat, 0xffffff, 0.04));
+label("q̂", qHat.clone().add(new THREE.Vector3(0.1, 0.1, 0.05)));
+
+// q - projection of q̂ onto plane  
+const q = projectToPlane(qHat);
+scene.add(point(q, 0xffffff, 0.04));
+label("q", q.clone().add(new THREE.Vector3(-0.15, 0.05, 0.1)));
+
+/* ========== PROJECTION RAYS FROM C ========== */
+// Main rays through ẑ and q̂
+scene.add(dashedLine(C, zHat, 0xffffff));
+scene.add(line(zHat, z, 0xffffff));
+
+scene.add(dashedLine(C, qHat, 0xffffff));
+scene.add(line(qHat, q, 0xffffff));
+
+// Additional projection rays (like in the diagram)
+const rayAngles = [-1.2, -0.8, 0.0, 0.3, 0.7];
+const rayPhis = [0.6, 0.65, 0.55, 0.7, 0.75];
+for(let i = 0; i < rayAngles.length; i++) {
+  const hp = hemispherePoint(rayAngles[i], rayPhis[i]);
+  const pp = projectToPlane(hp);
+  scene.add(point(hp, 0xaaaaaa, 0.03));
+  scene.add(point(pp, 0xaaaaaa, 0.03));
+  scene.add(line(C, hp, 0x666666));
+  scene.add(line(hp, pp, 0x888888));
+}
+
+/* ========== CURVE γ (ellipse E) ON THE PLANE ========== */
+const ellipsePts = [];
+const ellipseA = 1.2, ellipseB = 0.4;
+const ellipseCenterX = -2.5, ellipseCenterZ = 1.5;
+const ellipseRot = 0.5;
+for(let i = 0; i <= 64; i++) {
+  const t = i/64 * Math.PI * 2;
+  const ex = ellipseA * Math.cos(t);
+  const ez = ellipseB * Math.sin(t);
+  // rotate
+  const rx = ex*Math.cos(ellipseRot) - ez*Math.sin(ellipseRot);
+  const rz = ex*Math.sin(ellipseRot) + ez*Math.cos(ellipseRot);
+  ellipsePts.push(new THREE.Vector3(ellipseCenterX + rx, 0.02, ellipseCenterZ + rz));
+}
+const ellipseLine = new THREE.Line(
+  new THREE.BufferGeometry().setFromPoints(ellipsePts),
+  new THREE.LineBasicMaterial({color:0x888888})
+);
+scene.add(ellipseLine);
+label("E", new THREE.Vector3(ellipseCenterX - 0.3, 0.05, ellipseCenterZ - 0.1));
+
+// γ label with arrow indication
+const gammaPos = new THREE.Vector3(ellipseCenterX - 1.3, 0.05, ellipseCenterZ + 0.3);
+label("γ", gammaPos);
+scene.add(line(gammaPos.clone().add(new THREE.Vector3(0.15,0,0)), 
+               new THREE.Vector3(ellipseCenterX - 0.9, 0.02, ellipseCenterZ + 0.2), 0x666666));
+
+/* ========== dz VECTOR ========== */
+const dzDir = new THREE.Vector3(0.4, 0, 0.15).normalize();
+const dzLen = 0.5;
+const dzVec = dzDir.clone().multiplyScalar(dzLen);
+scene.add(arrowLine(z, dzVec, 0xcccccc));
+label("dz", z.clone().add(dzVec).add(new THREE.Vector3(0.1, 0.05, 0.1)));
+
+/* ========== θ (angle) and r (radius) ========== */
+// r - line from O toward z
+const rDir = z.clone().normalize();
+const rEnd = rDir.clone().multiplyScalar(z.length() * 0.7);
+scene.add(dashedLine(O.clone().add(new THREE.Vector3(0,0.02,0)), 
+                     rEnd.clone().add(new THREE.Vector3(0,0.02,0)), 0xaaaaaa));
+label("r", rEnd.clone().multiplyScalar(0.6).add(new THREE.Vector3(0.1, 0.08, 0)));
+
+// θ - angle arc near O
+const arcPts = [];
+const arcRadius = 0.6;
+const arcStart = 0;
+const arcEnd = Math.atan2(z.z, z.x);
+for(let i = 0; i <= 16; i++) {
+  const a = arcStart + (arcEnd - arcStart) * i/16;
+  arcPts.push(new THREE.Vector3(arcRadius*Math.cos(a), 0.02, arcRadius*Math.sin(a)));
+}
+const arcLine = new THREE.Line(
+  new THREE.BufferGeometry().setFromPoints(arcPts),
+  new THREE.LineBasicMaterial({color:0x888888})
+);
+scene.add(arcLine);
+label("θ", new THREE.Vector3(arcRadius*0.7*Math.cos(arcEnd/2), 0.08, arcRadius*0.7*Math.sin(arcEnd/2)));
+
+/* ========== ds and dŝ LABELS (boxed) ========== */
+labelBox("dŝ", new THREE.Vector3(-3.2, 0.05, 2.2));
+labelBox("ds", new THREE.Vector3(-3.2, 0.05, 2.8));
+
+// Lines connecting ds/dŝ boxes toward z (like in diagram)
+scene.add(line(new THREE.Vector3(-2.7, 0.02, 2.2), zHat.clone().add(new THREE.Vector3(-0.3,0,0)), 0x555555));
+scene.add(line(new THREE.Vector3(-2.7, 0.02, 2.8), z.clone().add(new THREE.Vector3(-0.1,0,0)), 0x555555));
+
+/* ========== HELPER FUNCTIONS ========== */
+function point(p, c=0xffffff, size=0.05) {
+  const m = new THREE.Mesh(
+    new THREE.SphereGeometry(size, 16, 16),
+    new THREE.MeshStandardMaterial({color:c, emissive:c, emissiveIntensity:0.3})
+  );
+  m.position.copy(p);
+  return m;
+}
+
+function line(a, b, c=0xffffff) {
+  return new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints([a, b]),
+    new THREE.LineBasicMaterial({color:c})
+  );
+}
+
+function dashedLine(a, b, c=0xffffff) {
+  const geom = new THREE.BufferGeometry().setFromPoints([a, b]);
+  const mat = new THREE.LineDashedMaterial({color:c, dashSize:0.1, gapSize:0.05});
+  const ln = new THREE.Line(geom, mat);
+  ln.computeLineDistances();
+  return ln;
+}
+
+function arrowLine(origin, vec, c=0xffffff) {
+  const group = new THREE.Group();
+  const end = origin.clone().add(vec);
+  group.add(line(origin, end, c));
+  
+  // arrowhead
+  const dir = vec.clone().normalize();
+  const len = 0.1;
+  const perp = new THREE.Vector3(-dir.z, 0, dir.x).normalize();
+  const p1 = end.clone().sub(dir.clone().multiplyScalar(len)).add(perp.clone().multiplyScalar(len*0.4));
+  const p2 = end.clone().sub(dir.clone().multiplyScalar(len)).sub(perp.clone().multiplyScalar(len*0.4));
+  group.add(line(end, p1, c));
+  group.add(line(end, p2, c));
+  return group;
+}
+
+function label(text, pos, isLarge=false) {
+  const div = document.createElement("div");
+  div.className = "label";
+  div.innerHTML = text.replace(/\n/g, "<br>");
+  if(isLarge) div.style.fontSize = "14px";
+  const lbl = new CSS2DObject(div);
+  lbl.position.copy(pos);
+  scene.add(lbl);
+}
+
+function labelBox(text, pos) {
+  const div = document.createElement("div");
+  div.className = "label-box";
+  div.textContent = text;
+  const lbl = new CSS2DObject(div);
+  lbl.position.copy(pos);
+  scene.add(lbl);
+}
+
+/* ========== ANIMATE ========== */
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+  labelRenderer.render(scene, camera);
+}
+animate();
+
+addEventListener("resize", () => {
+  camera.aspect = innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+  labelRenderer.setSize(innerWidth, innerHeight);
+});
+</script>
+</body>
+</html>
