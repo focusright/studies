@@ -195,6 +195,19 @@ const zqHatsLine = new THREE.Line(
 zqHatsLine.renderOrder = 999;
 scene.add(zqHatsLine);
 
+// Bracket next to zqHatsLine
+const yellow = new THREE.Color(0xffff00);
+const zqHatsMidpoint = zHat.clone().add(qHat).multiplyScalar(0.5);
+const zqHatsDir = qHat.clone().sub(zHat).normalize();
+const dsHatPos = new THREE.Vector3(-0.2, 1.2, 2.5);
+const bracketHatsPos = zqHatsMidpoint.clone().add(dsHatPos.clone().sub(zqHatsMidpoint).multiplyScalar(0.2));
+// Direction from bracket position toward zqHats midpoint (so bracket opens toward line, legs point at zHat and qHat)
+const bracketHatsToLine = zqHatsMidpoint.clone().sub(bracketHatsPos).normalize();
+const zqHatsLength = zHat.distanceTo(qHat);
+const bracketHatsGroup = bracket(bracketHatsPos, zqHatsLength, 0.15, zqHatsDir, bracketHatsToLine, yellow);
+scene.add(bracketHatsGroup);
+const longSideMidpoint1 = bracketHatsGroup.getLongSideMidpoint();
+scene.add(line(longSideMidpoint1, dsHatPos, yellow));
 // Arrow from z to q (start at edge of z's torus)
 const zToQOffset = q.clone().sub(z).normalize().multiplyScalar(0.06);  // torus radius
 scene.add(flatArrow(z.clone().add(zToQOffset), q));
@@ -222,7 +235,7 @@ scene.add(dottedArc(O, 0.45, Math.PI, Math.atan2(z.z, z.x), 0.01));
 label("θ", new THREE.Vector3(-0.3, 0.15, 0.2));
 
 // ds hat label box (left side of plane, above ds)
-labelBox("<span style='position:relative'>ds<span style='position:absolute;left:0;right:0;top:-0.5em;text-align:center'>^</span></span>", new THREE.Vector3(-0.2, 1.2, 2));
+labelBox("<span style='position:relative'>ds<span style='position:absolute;left:0;right:0;top:-0.5em;text-align:center'>^</span></span>", dsHatPos);
 
 // ds label box (left side of plane)
 const dsPos = new THREE.Vector3(-0.3, 0.3, 3.5);
@@ -236,13 +249,12 @@ const bracketPos = zqMidpoint.clone().add(dsPos.clone().sub(zqMidpoint).multiply
 const bracketToLine = zqMidpoint.clone().sub(bracketPos).normalize();
 // Use zqDir as the long side direction, opening toward the line so legs point at z and q
 const zqLength = z.distanceTo(q);
-const yellow = new THREE.Color(0xffff00);
 const bracketGroup = bracket(bracketPos, zqLength, 0.15, zqDir, bracketToLine, yellow);
 scene.add(bracketGroup);
 
 // Line from bracket's long side to ds labelbox
-const longSideMidpoint = bracketGroup.getLongSideMidpoint();
-scene.add(line(longSideMidpoint, dsPos, yellow));
+const longSideMidpoint2 = bracketGroup.getLongSideMidpoint();
+scene.add(line(longSideMidpoint2, dsPos, yellow));
 
 // Arc arrow from ds labelbox to center of dz
 //const dsArrowStart = dsPos.clone().add(new THREE.Vector3(0, -0.1, 0));
