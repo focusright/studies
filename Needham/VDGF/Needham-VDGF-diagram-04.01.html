@@ -28,8 +28,8 @@ import { CSS2DRenderer, CSS2DObject } from "https://esm.sh/three@0.160.0/example
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
 
-const camera = new THREE.PerspectiveCamera(40,innerWidth/innerHeight,0.01,100);
-camera.position.set(-8,5,10);
+const camera = new THREE.PerspectiveCamera(35,innerWidth/innerHeight,0.01,100);
+camera.position.set(-0.14, 4.28, 11.32);
 
 const renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth,innerHeight);
@@ -44,54 +44,76 @@ document.body.appendChild(labelRenderer.domElement);
 
 const controls = new OrbitControls(camera,renderer.domElement);
 controls.enableDamping=true;
-controls.target.set(0,1,0);
-
-scene.add(new THREE.AmbientLight(0xffffff,.5));
-const dl = new THREE.DirectionalLight(0xffffff,.6);
-dl.position.set(5,10,8);
-scene.add(dl);
+controls.target.set(0, 0.8, 0);
 
 const R = 2; // hemisphere radius
+const outlineColor = 0xcccccc;
+const outlineThickness = 0.015;
 
 /* ========== TANGENT PLANE ========== */
 const planeGeo = new THREE.PlaneGeometry(12,8);
-const planeMat = new THREE.MeshStandardMaterial({
-  color:0x1a1a1a,
-  side:THREE.DoubleSide,
-  metalness:0.1,
-  roughness:0.9
+const planeMat = new THREE.MeshBasicMaterial({
+  color:0x151515,
+  side:THREE.DoubleSide
 });
 const plane = new THREE.Mesh(planeGeo,planeMat);
 plane.rotation.x = -Math.PI/2;
 plane.position.y = 0;
 scene.add(plane);
+
+// Plane edge outline
+const planeEdges = new THREE.EdgesGeometry(planeGeo);
+const planeOutline = new THREE.LineSegments(planeEdges, new THREE.LineBasicMaterial({color:outlineColor}));
+planeOutline.rotation.x = -Math.PI/2;
+planeOutline.position.y = 0.001;
+scene.add(planeOutline);
+
 label("(complex)\ntangent plane", new THREE.Vector3(3.5,0.05,-2), true);
 
 /* ========== HEMISPHERE (bowl-up) ========== */
 // The hemisphere sits with its flat base on the plane, bowl opening upward
 const hemiGeo = new THREE.SphereGeometry(R,64,32,0,Math.PI*2,0,Math.PI/2);
-const hemiMat = new THREE.MeshStandardMaterial({
-  color:0x4a4a4a,
+const hemiMat = new THREE.MeshBasicMaterial({
+  color:0x2a2a2a,
   transparent:true,
-  opacity:0.4,
-  side:THREE.DoubleSide,
-  metalness:0.3,
-  roughness:0.7
+  opacity:0.5,
+  side:THREE.FrontSide
 });
 const hemi = new THREE.Mesh(hemiGeo,hemiMat);
 hemi.rotation.x = Math.PI; // flip so bowl opens upward
 hemi.position.y = R; // center at height R so base touches plane
 scene.add(hemi);
 
-/* Rim at top of hemisphere */
+// Inside of hemisphere (slightly darker)
+const hemiInnerMat = new THREE.MeshBasicMaterial({
+  color:0x1a1a1a,
+  side:THREE.BackSide
+});
+const hemiInner = new THREE.Mesh(hemiGeo, hemiInnerMat);
+hemiInner.rotation.x = Math.PI;
+hemiInner.position.y = R;
+scene.add(hemiInner);
+
+// Hemisphere outline using inverted hull technique
+const hemiOutlineGeo = new THREE.SphereGeometry(R + outlineThickness, 64, 32, 0, Math.PI*2, 0, Math.PI/2);
+const hemiOutlineMat = new THREE.MeshBasicMaterial({
+  color:outlineColor,
+  side:THREE.BackSide
+});
+const hemiOutline = new THREE.Mesh(hemiOutlineGeo, hemiOutlineMat);
+hemiOutline.rotation.x = Math.PI;
+hemiOutline.position.y = R;
+scene.add(hemiOutline);
+
+/* Rim at top of hemisphere (equator after flip, at y = R) */
 const rimPts = [...Array(128)].map((_,i)=>{
   const a = i/128*Math.PI*2;
-  return new THREE.Vector3(R*Math.cos(a), R*2, R*Math.sin(a));
+  return new THREE.Vector3(R*Math.cos(a), R, R*Math.sin(a));
 });
 rimPts.push(rimPts[0]);
 const rim = new THREE.Line(
   new THREE.BufferGeometry().setFromPoints(rimPts),
-  new THREE.LineBasicMaterial({color:0xcccccc})
+  new THREE.LineBasicMaterial({color:outlineColor, linewidth:2})
 );
 scene.add(rim);
 
@@ -116,12 +138,12 @@ label("O", O.clone().add(new THREE.Vector3(0.15, 0.1, 0.1)));
 
 // c - point on the rim (top)
 const cAngle = 0.4;
-const cPt = new THREE.Vector3(R*Math.cos(cAngle), R*2, R*Math.sin(cAngle));
+const cPt = new THREE.Vector3(R*Math.cos(cAngle), R, R*Math.sin(cAngle));
 scene.add(point(cPt, 0xffffff, 0.05));
 label("c", cPt.clone().add(new THREE.Vector3(0.1, 0.15, 0)));
 
 // C - projection center (inside hemisphere, on the axis)
-const C = new THREE.Vector3(0, R*1.5, 0);
+const C = new THREE.Vector3(0, R*0.6, 0); // inside hemisphere, on the axis
 scene.add(point(C, 0xffffff, 0.06));
 label("C", C.clone().add(new THREE.Vector3(-0.2, 0.1, 0)));
 
@@ -129,10 +151,10 @@ label("C", C.clone().add(new THREE.Vector3(-0.2, 0.1, 0)));
 
 // Function to get point on hemisphere surface given spherical coords
 function hemispherePoint(theta, phi) {
-  // phi from 0 (top) to PI/2 (equator/base)
-  const y = R*2 - R*(1 - Math.cos(phi));
-  const r = R*Math.sin(phi);
-  return new THREE.Vector3(r*Math.cos(theta), y, r*Math.sin(theta));
+  // phi from 0 (pole at y=0) to PI/2 (rim at y=R)
+  const y = R * (1 - Math.cos(phi));
+  const r = R * Math.sin(phi);
+  return new THREE.Vector3(r * Math.cos(theta), y, r * Math.sin(theta));
 }
 
 // Function to project from C through point p onto y=0 plane
@@ -252,7 +274,7 @@ scene.add(line(new THREE.Vector3(-2.7, 0.02, 2.8), z.clone().add(new THREE.Vecto
 function point(p, c=0xffffff, size=0.05) {
   const m = new THREE.Mesh(
     new THREE.SphereGeometry(size, 16, 16),
-    new THREE.MeshStandardMaterial({color:c, emissive:c, emissiveIntensity:0.3})
+    new THREE.MeshBasicMaterial({color:c})
   );
   m.position.copy(p);
   return m;
@@ -322,6 +344,17 @@ addEventListener("resize", () => {
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
   labelRenderer.setSize(innerWidth, innerHeight);
+});
+
+// Press 'P' to print camera position and target
+addEventListener("keydown", (e) => {
+  if(e.key === 'p' || e.key === 'P') {
+    const p = camera.position;
+    const t = controls.target;
+    console.log(`Camera position: (${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)})`);
+    console.log(`Camera target: (${t.x.toFixed(2)}, ${t.y.toFixed(2)}, ${t.z.toFixed(2)})`);
+    alert(`Position: (${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)})\nTarget: (${t.x.toFixed(2)}, ${t.y.toFixed(2)}, ${t.z.toFixed(2)})`);
+  }
 });
 </script>
 </body>
