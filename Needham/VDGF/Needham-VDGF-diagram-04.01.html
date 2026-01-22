@@ -111,9 +111,9 @@ const C = new THREE.Vector3(0, R, 0);
 scene.add(dot(C));
 label("C", C.clone().add(new THREE.Vector3(0.15, 0.15, 0)));
 
-// Pick a point on hemisphere (theta=2.5, phi=0.7)
-const theta = 2.5;  // Angle around Y axis
-const phi = 0.7;    // Angle from pole (0=pole, PI/2=rim)
+// Pick a point on hemisphere
+const theta = 1.9;  // Angle around Y axis
+const phi = 0.9;    // Angle from pole (0=pole, PI/2=rim)
 
 // Calculate ẑ position on hemisphere surface
 const zHat = new THREE.Vector3(
@@ -122,14 +122,14 @@ const zHat = new THREE.Vector3(
   R * Math.sin(phi) * Math.sin(theta)
 );
 scene.add(dot(zHat));
-label("ẑ", zHat.clone().add(new THREE.Vector3(-0.15, 0.15, 0)));
+label("ẑ", zHat.clone().add(new THREE.Vector3(0.1, -0.15, 0)));
 
 // Project from C through ẑ to plane (y=0)
 const dir = zHat.clone().sub(C);          // Direction from C to ẑ
 const t = -C.y / dir.y;                   // Parameter to reach y=0
 const z = C.clone().add(dir.multiplyScalar(t));
 scene.add(dot(z));
-label("z", z.clone().add(new THREE.Vector3(-0.15, 0.1, 0)));
+label("z", z.clone().add(new THREE.Vector3(0.1, -0.15, 0)));
 
 // Draw the projection ray
 scene.add(line(C, z));
@@ -138,8 +138,9 @@ scene.add(line(C, z));
 function dot(pos, color = 0xffffff, size = 0.05) {
   const mesh = new THREE.Mesh(
     new THREE.SphereGeometry(size, 16, 16),
-    new THREE.MeshBasicMaterial({color})
+    new THREE.MeshBasicMaterial({ color, depthTest: false })
   );
+  mesh.renderOrder = 999;  // Render last, on top of everything
   mesh.position.copy(pos);
   return mesh;
 }
