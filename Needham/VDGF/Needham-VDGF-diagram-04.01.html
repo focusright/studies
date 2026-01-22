@@ -113,12 +113,12 @@ scene.add(new THREE.Line(
 // O - Origin (where pole touches plane)
 const O = new THREE.Vector3(0, 0, 0);
 scene.add(circle(O, new THREE.Vector3(0, 1, 0), 0xffffff, 0.04, 0.008));
-label("O", O.clone().add(new THREE.Vector3(0.15, 0.1, 0)));
+label("O", O.clone().add(new THREE.Vector3(0, 0.1, 0)));
 
 // C - Center of sphere (at rim level)
 const C = new THREE.Vector3(0, R, 0);
 scene.add(dot(C));
-label("C", C.clone().add(new THREE.Vector3(0.15, 0.15, 0)));
+label("C", C.clone().add(new THREE.Vector3(0, 0.15, 0)));
 
 // Pick a point on hemisphere
 const theta = 1.9;  // Angle around Y axis
@@ -133,7 +133,7 @@ const zHat = new THREE.Vector3(
 // Normal at ẑ: points outward from sphere center (0, R, 0) toward ẑ
 const zHatNormal = zHat.clone().sub(new THREE.Vector3(0, R, 0)).normalize();
 scene.add(circle(zHat, zHatNormal, 0xffffff, 0.04, 0.008));
-label("<span style='position:relative'>z<span style='position:absolute;left:0;right:0;top:-0.5em;text-align:center'>^</span></span>", zHat.clone().add(new THREE.Vector3(0.1, -0.15, 0)));
+label("<span style='position:relative'>z<span style='position:absolute;left:0;right:0;top:-0.5em;text-align:center'>^</span></span>", zHat.clone().add(new THREE.Vector3(0.1, -0, 0)));
 
 // Project from C through ẑ to plane (y=0)
 const dir = zHat.clone().sub(C);          // Direction from C to ẑ
@@ -157,7 +157,7 @@ const qHat = new THREE.Vector3(
 );
 const qHatNormal = qHat.clone().sub(new THREE.Vector3(0, R, 0)).normalize();
 scene.add(circle(qHat, qHatNormal, 0xffffff, 0.04, 0.008));
-label("<span style='position:relative'>q<span style='position:absolute;left:0;right:0;top:-0.5em;text-align:center'>^</span></span>", qHat.clone().add(new THREE.Vector3(-0.1, 0.15, 0)));
+label("<span style='position:relative'>q<span style='position:absolute;left:0;right:0;top:-0.5em;text-align:center'>^</span></span>", qHat.clone().add(new THREE.Vector3(-0.1, 0.1, 0)));
 
 // Project from C through q̂ to plane (y=0)
 const dirQ = qHat.clone().sub(C);
@@ -184,6 +184,30 @@ scene.add(flatArrow(z.clone().add(zToQOffset), q));
 // dz label (near the arrow)
 const dzPos = z.clone().add(q.clone().sub(z).multiplyScalar(0.5)).add(new THREE.Vector3(0.06, -0.1, 0));
 label("dz", dzPos);
+
+// Dotted line from O to z (not occluded)
+const OzGeom = new THREE.BufferGeometry().setFromPoints([O, z]);
+const OzMat = new THREE.LineDashedMaterial({ color: 0xffffff, dashSize: 0.05, gapSize: 0.05, depthTest: false });
+const OzLine = new THREE.Line(OzGeom, OzMat);
+OzLine.computeLineDistances();
+OzLine.renderOrder = 999;
+scene.add(OzLine);
+
+// Dotted line from O going left (not occluded)
+const OLeftEnd = new THREE.Vector3(-0.5, 0, 0);
+const OLeftGeom = new THREE.BufferGeometry().setFromPoints([O, OLeftEnd]);
+const OLeftMat = new THREE.LineDashedMaterial({ color: 0xffffff, dashSize: 0.02, gapSize: 0.02, depthTest: false });
+const OLeftLine = new THREE.Line(OLeftGeom, OLeftMat);
+OLeftLine.computeLineDistances();
+OLeftLine.renderOrder = 999;
+scene.add(OLeftLine);
+
+// Dotted arc from left line end to O-z line (angle θ)
+scene.add(dottedArc(O, 0.5, Math.PI, Math.atan2(z.z, z.x), 0.01));
+scene.add(dottedArc(O, 0.45, Math.PI, Math.atan2(z.z, z.x), 0.01));
+
+// θ label (at midpoint of arc)
+label("θ", new THREE.Vector3(-0.3, 0.15, 0.2));
 
 // ds hat label box (left side of plane, above ds)
 labelBox("<span style='position:relative'>ds<span style='position:absolute;left:0;right:0;top:-0.5em;text-align:center'>^</span></span>", new THREE.Vector3(-1.2, 0.5, 1.5));
@@ -227,6 +251,24 @@ function flatArrow(start, end, color = 0xffffff, shaftWidth = 0.03, headLen = 0.
   group.add(head);
   
   return group;
+}
+
+function dottedArc(center, radius, startAngle, endAngle, yOffset = 0.01, color = 0xffffff, dashSize = 0.02, gapSize = 0.02) {
+  const arcPts = [];
+  for (let i = 0; i <= 32; i++) {
+    const a = startAngle + (endAngle - startAngle) * (i / 32);
+    arcPts.push(new THREE.Vector3(
+      center.x + radius * Math.cos(a),
+      center.y + yOffset,
+      center.z + radius * Math.sin(a)
+    ));
+  }
+  const arcGeom = new THREE.BufferGeometry().setFromPoints(arcPts);
+  const arcMat = new THREE.LineDashedMaterial({ color, dashSize, gapSize, depthTest: false });
+  const arc = new THREE.Line(arcGeom, arcMat);
+  arc.computeLineDistances();
+  arc.renderOrder = 999;
+  return arc;
 }
 
 function dot(pos, color = 0xffffff, size = 0.05) {
