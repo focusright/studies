@@ -188,12 +188,12 @@ const gammaPos = arcArrowStart.clone().add(arcArrowEnd).multiplyScalar(0.5).add(
 label("γ", gammaPos);
 
 // Line from ẑ to q̂ (always solid, not occluded)
-const zqLine = new THREE.Line(
+const zqHatsLine = new THREE.Line(
   new THREE.BufferGeometry().setFromPoints([zHat, qHat]),
   new THREE.LineBasicMaterial({ color: 0xffffff, depthTest: false })
 );
-zqLine.renderOrder = 999;
-scene.add(zqLine);
+zqHatsLine.renderOrder = 999;
+scene.add(zqHatsLine);
 
 // Arrow from z to q (start at edge of z's torus)
 const zToQOffset = q.clone().sub(z).normalize().multiplyScalar(0.06);  // torus radius
@@ -222,11 +222,27 @@ scene.add(dottedArc(O, 0.45, Math.PI, Math.atan2(z.z, z.x), 0.01));
 label("θ", new THREE.Vector3(-0.3, 0.15, 0.2));
 
 // ds hat label box (left side of plane, above ds)
-labelBox("<span style='position:relative'>ds<span style='position:absolute;left:0;right:0;top:-0.5em;text-align:center'>^</span></span>", new THREE.Vector3(-1.2, 0.5, 1.5));
+labelBox("<span style='position:relative'>ds<span style='position:absolute;left:0;right:0;top:-0.5em;text-align:center'>^</span></span>", new THREE.Vector3(-0.2, 1.2, 2));
 
 // ds label box (left side of plane)
-const dsPos = new THREE.Vector3(-1.5, 0.35, 2.5);
+const dsPos = new THREE.Vector3(-0.3, 0.3, 3.5);
 labelBox("ds", dsPos);
+
+// Bracket next to zq flatArrow
+const zqMidpoint = z.clone().add(q).multiplyScalar(0.5);
+const zqDir = q.clone().sub(z).normalize();
+const bracketPos = zqMidpoint.clone().add(dsPos.clone().sub(zqMidpoint).multiplyScalar(0.2));
+// Direction from bracket position toward zq midpoint (so bracket opens toward line, legs point at z and q)
+const bracketToLine = zqMidpoint.clone().sub(bracketPos).normalize();
+// Use zqDir as the long side direction, opening toward the line so legs point at z and q
+const zqLength = z.distanceTo(q);
+const yellow = new THREE.Color(0xffff00);
+const bracketGroup = bracket(bracketPos, zqLength, 0.15, zqDir, bracketToLine, yellow);
+scene.add(bracketGroup);
+
+// Line from bracket's long side to ds labelbox
+const longSideMidpoint = bracketGroup.getLongSideMidpoint();
+scene.add(line(longSideMidpoint, dsPos, yellow));
 
 // Arc arrow from ds labelbox to center of dz
 //const dsArrowStart = dsPos.clone().add(new THREE.Vector3(0, -0.1, 0));
@@ -402,6 +418,95 @@ function denseDottedLine(start, end, color = 0xffffff, dashSize = 0.02, gapSize 
   ln.computeLineDistances();
   ln.renderOrder = 999;
   return ln;
+}
+
+function bracket(center, width, height, direction = null, upDirection = null, color = 0xffffff) {
+  const group = new THREE.Group();
+  const halfWidth = width / 2;
+  const halfHeight = height / 2;
+  
+  // Calculate perpendicular vectors in 3D
+  let along, perp, up;
+  
+  if (direction instanceof THREE.Vector3) {
+    // Use provided direction (long side parallel to this)
+    along = direction.clone().normalize();
+    
+    if (upDirection instanceof THREE.Vector3) {
+      // Use provided up direction (bracket opens in this direction)
+      up = upDirection.clone().normalize();
+      // Project upDirection onto plane perpendicular to along
+      const proj = up.clone().sub(along.clone().multiplyScalar(up.dot(along)));
+      if (proj.length() > 0.001) {
+        up = proj.normalize();
+      } else {
+        // Fallback if upDirection is parallel to along
+        const worldUp = new THREE.Vector3(0, 1, 0);
+        perp = along.clone().cross(worldUp);
+        if (perp.length() < 0.001) {
+          perp = along.clone().cross(new THREE.Vector3(1, 0, 0));
+        }
+        perp.normalize();
+        up = perp.clone().cross(along).normalize();
+      }
+      perp = along.clone().cross(up).normalize();
+    } else {
+      // Default: calculate up from world up
+      const worldUp = new THREE.Vector3(0, 1, 0);
+      perp = along.clone().cross(worldUp);
+      if (perp.length() < 0.001) {
+        perp = along.clone().cross(new THREE.Vector3(1, 0, 0));
+      }
+      perp.normalize();
+      up = perp.clone().cross(along).normalize();
+    }
+  } else {
+    // Default: horizontal orientation (U opening upward)
+    along = new THREE.Vector3(1, 0, 0);
+    perp = new THREE.Vector3(0, 0, 1);
+    up = new THREE.Vector3(0, 1, 0);
+  }
+  
+  // Calculate 4 corner points: U shape opening in the up direction
+  // p1: bottom-left, p2: top-left, p3: top-right, p4: bottom-right
+  const p1 = center.clone().add(along.clone().multiplyScalar(-halfWidth)).add(up.clone().multiplyScalar(-halfHeight));
+  const p2 = center.clone().add(along.clone().multiplyScalar(-halfWidth)).add(up.clone().multiplyScalar(halfHeight));
+  const p3 = center.clone().add(along.clone().multiplyScalar(halfWidth)).add(up.clone().multiplyScalar(halfHeight));
+  const p4 = center.clone().add(along.clone().multiplyScalar(halfWidth)).add(up.clone().multiplyScalar(-halfHeight));
+  
+  const mat = new THREE.LineBasicMaterial({ color, depthTest: false });
+  
+  // Left vertical line (p1 to p2)
+  const leftLine = new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints([p1, p2]),
+    mat
+  );
+  leftLine.renderOrder = 999;
+  group.add(leftLine);
+  
+  // Bottom horizontal line (p1 to p4) - the long side
+  const bottomLine = new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints([p1, p4]),
+    mat
+  );
+  bottomLine.renderOrder = 999;
+  group.add(bottomLine);
+  
+  // Right vertical line (p4 to p3)
+  const rightLine = new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints([p4, p3]),
+    mat
+  );
+  rightLine.renderOrder = 999;
+  group.add(rightLine);
+  
+  // Add method to get the midpoint of the long side
+  group.getLongSideMidpoint = function() {
+    // The long side is from p1 to p4, midpoint is center - up*halfHeight
+    return center.clone().sub(up.clone().multiplyScalar(halfHeight));
+  };
+  
+  return group;
 }
 
 function dot(pos, color = 0xffffff, size = 0.05) {
