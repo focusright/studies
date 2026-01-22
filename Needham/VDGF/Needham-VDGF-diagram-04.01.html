@@ -161,7 +161,56 @@ label("q", q.clone().add(new THREE.Vector3(-0.1, -0.15, 0)));
 // Draw the projection ray C → q
 scene.add(line(C, q));
 
+// Line from ẑ to q̂ (always solid, not occluded)
+const zqLine = new THREE.Line(
+  new THREE.BufferGeometry().setFromPoints([zHat, qHat]),
+  new THREE.LineBasicMaterial({ color: 0xffffff, depthTest: false })
+);
+zqLine.renderOrder = 999;
+scene.add(zqLine);
+
+// Arrow from z to q (start at edge of z's torus)
+const zToQOffset = q.clone().sub(z).normalize().multiplyScalar(0.06);  // torus radius
+scene.add(flatArrow(z.clone().add(zToQOffset), q));
+
 //Helper functions
+function flatArrow(start, end, color = 0xffffff, shaftWidth = 0.03, headLen = 0.15, headWidth = 0.08) {
+  const group = new THREE.Group();
+  const dir = end.clone().sub(start);
+  const len = dir.length();
+  const dirNorm = dir.clone().normalize();
+  const perp = new THREE.Vector3(-dirNorm.z, 0, dirNorm.x).normalize();
+  const shaftEnd = start.clone().add(dirNorm.clone().multiplyScalar(len - headLen));
+  
+  // Shaft (flat rectangle)
+  const s1 = start.clone().add(perp.clone().multiplyScalar(shaftWidth / 2));
+  const s2 = start.clone().sub(perp.clone().multiplyScalar(shaftWidth / 2));
+  const s3 = shaftEnd.clone().sub(perp.clone().multiplyScalar(shaftWidth / 2));
+  const s4 = shaftEnd.clone().add(perp.clone().multiplyScalar(shaftWidth / 2));
+  const shaftGeo = new THREE.BufferGeometry();
+  shaftGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array([
+    s1.x, s1.y + 0.01, s1.z, s2.x, s2.y + 0.01, s2.z, s3.x, s3.y + 0.01, s3.z,
+    s1.x, s1.y + 0.01, s1.z, s3.x, s3.y + 0.01, s3.z, s4.x, s4.y + 0.01, s4.z
+  ]), 3));
+  const shaft = new THREE.Mesh(shaftGeo, new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide, depthTest: false }));
+  shaft.renderOrder = 999;
+  group.add(shaft);
+  
+  // Head (flat triangle)
+  const tip = end.clone();
+  const base1 = shaftEnd.clone().add(perp.clone().multiplyScalar(headWidth));
+  const base2 = shaftEnd.clone().sub(perp.clone().multiplyScalar(headWidth));
+  const headGeo = new THREE.BufferGeometry();
+  headGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array([
+    tip.x, tip.y + 0.01, tip.z, base1.x, base1.y + 0.01, base1.z, base2.x, base2.y + 0.01, base2.z
+  ]), 3));
+  const head = new THREE.Mesh(headGeo, new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide, depthTest: false }));
+  head.renderOrder = 999;
+  group.add(head);
+  
+  return group;
+}
+
 function dot(pos, color = 0xffffff, size = 0.05) {
   const mesh = new THREE.Mesh(
     new THREE.SphereGeometry(size, 16, 16),
