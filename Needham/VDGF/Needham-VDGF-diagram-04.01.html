@@ -136,8 +136,30 @@ const zNormal = new THREE.Vector3(0, 1, 0);
 scene.add(circle(z, zNormal));
 label("z", z.clone().add(new THREE.Vector3(0.1, -0.15, 0)));
 
-// Draw the projection ray
+// Draw the projection ray C → z
 scene.add(line(C, z));
+
+// q̂ - another point on hemisphere (closer to rim, slightly left of ẑ)
+const thetaQ = 2.0;
+const phiQ = 1.0;
+const qHat = new THREE.Vector3(
+  R * Math.sin(phiQ) * Math.cos(thetaQ),
+  R * (1 - Math.cos(phiQ)),
+  R * Math.sin(phiQ) * Math.sin(thetaQ)
+);
+const qHatNormal = qHat.clone().sub(new THREE.Vector3(0, R, 0)).normalize();
+scene.add(circle(qHat, qHatNormal, 0xffffff, 0.04, 0.008));
+label("<span style='position:relative'>q<span style='position:absolute;left:0;right:0;top:-0.5em;text-align:center'>^</span></span>", qHat.clone().add(new THREE.Vector3(0.1, -0.15, 0)));
+
+// Project from C through q̂ to plane (y=0)
+const dirQ = qHat.clone().sub(C);
+const tQ = -C.y / dirQ.y;
+const q = C.clone().add(dirQ.multiplyScalar(tQ));
+scene.add(circle(q, new THREE.Vector3(0, 1, 0)));
+label("q", q.clone().add(new THREE.Vector3(-0.1, -0.15, 0)));
+
+// Draw the projection ray C → q
+scene.add(line(C, q));
 
 //Helper functions
 function dot(pos, color = 0xffffff, size = 0.05) {
