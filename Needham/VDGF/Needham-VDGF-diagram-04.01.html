@@ -60,23 +60,22 @@ labelLarge("(complex)<br>tangent plane", new THREE.Vector3(4, 0.05, 1));
 // Hemisphere
 const hemiGeo = new THREE.SphereGeometry(R, 64, 32, 0, Math.PI*2, 0, Math.PI/2);
 
-// Outer surface
+// Outer surface (opaque like plane, so it occludes lines)
 const hemiMat = new THREE.MeshBasicMaterial({
   color: 0x2a2a2a,
-  transparent: true,
-  opacity: 0.5,
   side: THREE.FrontSide
 });
 const hemi = new THREE.Mesh(hemiGeo, hemiMat);
-hemi.rotation.x = Math.PI;  // Flip so bowl opens upward
-hemi.position.y = R;        // Position so pole touches y=0
+hemi.rotation.x = Math.PI;
+hemi.position.y = R;
 scene.add(hemi);
 
 // Inner surface (darker)
-const hemiInner = new THREE.Mesh(hemiGeo, new THREE.MeshBasicMaterial({
+const hemiInnerMat = new THREE.MeshBasicMaterial({
   color: 0x1a1a1a,
   side: THREE.BackSide
-}));
+});
+const hemiInner = new THREE.Mesh(hemiGeo, hemiInnerMat);
 hemiInner.rotation.x = Math.PI;
 hemiInner.position.y = R;
 scene.add(hemiInner);
@@ -132,9 +131,8 @@ const z = C.clone().add(dir.multiplyScalar(t));
 scene.add(dot(z));
 label("z", z.clone().add(new THREE.Vector3(-0.15, 0.1, 0)));
 
-// Draw the projection ray: C → ẑ (dashed), ẑ → z (solid)
-scene.add(dashedLine(C, zHat));
-scene.add(solidLine(zHat, z));
+// Draw the projection ray
+scene.add(line(C, z));
 
 //Helper functions
 function dot(pos, color = 0xffffff, size = 0.05) {
@@ -145,18 +143,30 @@ function dot(pos, color = 0xffffff, size = 0.05) {
   mesh.position.copy(pos);
   return mesh;
 }
-function solidLine(a, b, color = 0xffffff) {
-  return new THREE.Line(
-    new THREE.BufferGeometry().setFromPoints([a, b]),
-    new THREE.LineBasicMaterial({color})
-  );
-}
-function dashedLine(a, b, color = 0xffffff) {
-  const geom = new THREE.BufferGeometry().setFromPoints([a, b]);
-  const mat = new THREE.LineDashedMaterial({color, dashSize: 0.1, gapSize: 0.05});
-  const ln = new THREE.Line(geom, mat);
-  ln.computeLineDistances();
-  return ln;
+function line(a, b, color = 0xffffff) {
+  const group = new THREE.Group();
+  const points = [a, b];
+  
+  // Solid line for visible parts (normal depth test)
+  const solidMat = new THREE.LineBasicMaterial({ color, depthTest: true });
+  const solid = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), solidMat);
+  solid.renderOrder = 1;  // Render after hemisphere
+  group.add(solid);
+  
+  // Dashed line for occluded parts (render only behind geometry)
+  const dashedMat = new THREE.LineDashedMaterial({
+    color,
+    dashSize: 0.08,
+    gapSize: 0.04,
+    depthFunc: THREE.GreaterDepth
+  });
+  const dashed = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), dashedMat);
+  dashed.computeLineDistances();
+  dashed.renderOrder = 1;  // Render after hemisphere
+  group.add(dashed);
+  
+  group.renderOrder = 1;
+  return group;
 }
 function label(text, pos) {
   const div = document.createElement("div");
