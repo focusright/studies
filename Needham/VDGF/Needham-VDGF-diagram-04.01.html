@@ -136,16 +136,10 @@ const O = new THREE.Vector3(0, 0, 0);
 scene.add(point(O, 0xffffff, 0.04));
 label("O", O.clone().add(new THREE.Vector3(0.15, 0.1, 0.1)));
 
-// c - point on the rim (top)
-const cAngle = 0.4;
-const cPt = new THREE.Vector3(R*Math.cos(cAngle), R, R*Math.sin(cAngle));
-scene.add(point(cPt, 0xffffff, 0.05));
-label("c", cPt.clone().add(new THREE.Vector3(0.1, 0.15, 0)));
-
-// C - projection center (inside hemisphere, on the axis)
-const C = new THREE.Vector3(0, R*0.6, 0); // inside hemisphere, on the axis
-scene.add(point(C, 0xffffff, 0.06));
-label("C", C.clone().add(new THREE.Vector3(-0.2, 0.1, 0)));
+// C - projection center (center of the circle on top of the hemisphere)
+const C = new THREE.Vector3(0, R, 0); // inside hemisphere, on the axis
+scene.add(point(C, 0xffffff, 0.05));
+label("C", C.clone().add(new THREE.Vector3(0.15, 0.15, 0)));
 
 /* ========== POINTS ON HEMISPHERE AND THEIR PROJECTIONS ========== */
 
@@ -165,19 +159,19 @@ function projectToPlane(p) {
 }
 
 // ẑ - point on hemisphere
-const zHat = hemispherePoint(-0.6, 0.7);
+const zHat = hemispherePoint(2.5, 0.7);
 scene.add(point(zHat, 0xffffff, 0.04));
-label("ẑ", zHat.clone().add(new THREE.Vector3(0.05, 0.15, 0.05)));
+label("ẑ", zHat.clone().add(new THREE.Vector3(-0.15, 0.15, 0.05)));
 
 // z - projection of ẑ onto plane
 const z = projectToPlane(zHat);
 scene.add(point(z, 0xffffff, 0.04));
-label("z", z.clone().add(new THREE.Vector3(-0.2, 0.05, -0.15)));
+label("z", z.clone().add(new THREE.Vector3(-0.2, 0.05, 0.15)));
 
 // q̂ - another point on hemisphere
-const qHat = hemispherePoint(-0.4, 0.5);
+const qHat = hemispherePoint(2.7, 0.5);
 scene.add(point(qHat, 0xffffff, 0.04));
-label("q̂", qHat.clone().add(new THREE.Vector3(0.1, 0.1, 0.05)));
+label("q̂", qHat.clone().add(new THREE.Vector3(-0.15, 0.1, 0.05)));
 
 // q - projection of q̂ onto plane  
 const q = projectToPlane(qHat);
