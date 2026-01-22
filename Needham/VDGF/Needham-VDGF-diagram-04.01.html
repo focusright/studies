@@ -9,6 +9,7 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden}
   color:#ccc;font-size:13px;font-family:Georgia,serif;font-style:italic;
   text-shadow:0 0 8px #000,0 0 3px #000;
   pointer-events:none;
+  text-align:center;
 }
 </style>
 </head>
@@ -103,7 +104,7 @@ scene.add(new THREE.Line(
 
 // O - Origin (where pole touches plane)
 const O = new THREE.Vector3(0, 0, 0);
-scene.add(dot(O));
+scene.add(circle(O, new THREE.Vector3(0, 1, 0), 0xffffff, 0.04, 0.008));
 label("O", O.clone().add(new THREE.Vector3(0.15, 0.1, 0)));
 
 // C - Center of sphere (at rim level)
@@ -121,14 +122,18 @@ const zHat = new THREE.Vector3(
   R * (1 - Math.cos(phi)),  // Height: 0 at pole, R at rim
   R * Math.sin(phi) * Math.sin(theta)
 );
-scene.add(dot(zHat));
-label("ẑ", zHat.clone().add(new THREE.Vector3(0.1, -0.15, 0)));
+// Normal at ẑ: points outward from sphere center (0, R, 0) toward ẑ
+const zHatNormal = zHat.clone().sub(new THREE.Vector3(0, R, 0)).normalize();
+scene.add(circle(zHat, zHatNormal, 0xffffff, 0.04, 0.008));
+label("<span style='position:relative'>z<span style='position:absolute;left:0;right:0;top:-0.5em;text-align:center'>^</span></span>", zHat.clone().add(new THREE.Vector3(0.1, -0.15, 0)));
 
 // Project from C through ẑ to plane (y=0)
 const dir = zHat.clone().sub(C);          // Direction from C to ẑ
 const t = -C.y / dir.y;                   // Parameter to reach y=0
 const z = C.clone().add(dir.multiplyScalar(t));
-scene.add(dot(z));
+// Normal at z: points up (flat on plane)
+const zNormal = new THREE.Vector3(0, 1, 0);
+scene.add(circle(z, zNormal));
 label("z", z.clone().add(new THREE.Vector3(0.1, -0.15, 0)));
 
 // Draw the projection ray
@@ -140,9 +145,25 @@ function dot(pos, color = 0xffffff, size = 0.05) {
     new THREE.SphereGeometry(size, 16, 16),
     new THREE.MeshBasicMaterial({ color, depthTest: false })
   );
-  mesh.renderOrder = 999;  // Render last, on top of everything
+  mesh.renderOrder = 999;
   mesh.position.copy(pos);
   return mesh;
+}
+
+function circle(pos, normal, color = 0xffffff, radius = 0.06, tubeRadius = 0.012) {
+  // Create a torus (3D ring) oriented perpendicular to the normal
+  const geom = new THREE.TorusGeometry(radius, tubeRadius, 8, 32);
+  const mat = new THREE.MeshBasicMaterial({ color, depthTest: false });
+  const torus = new THREE.Mesh(geom, mat);
+  torus.position.copy(pos);
+  torus.renderOrder = 999;
+  
+  // Orient the torus to be perpendicular to the normal
+  const up = new THREE.Vector3(0, 0, 1);
+  const quat = new THREE.Quaternion().setFromUnitVectors(up, normal.clone().normalize());
+  torus.quaternion.copy(quat);
+  
+  return torus;
 }
 function line(a, b, color = 0xffffff) {
   const group = new THREE.Group();
