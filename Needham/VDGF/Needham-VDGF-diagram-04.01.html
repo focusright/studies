@@ -169,6 +169,24 @@ label("q", q.clone().add(new THREE.Vector3(-0.1, -0.15, 0)));
 // Draw the projection ray C → q
 scene.add(line(C, q));
 
+// Dense dotted line extending from q (not occluded, parallel to z-q arrow)
+const qExtendDir = q.clone().sub(z).normalize();  // Same direction as z-q arrow
+scene.add(denseDottedLine(q, q.clone().add(qExtendDir.multiplyScalar(0.5))));
+
+// Dense dotted line from z going left (similar to OLeftEnd)
+const zLeftEnd = z.clone().add(new THREE.Vector3(-1.2, 0, 0));
+scene.add(denseDottedLine(z, zLeftEnd));
+
+// Arc arrow from zLeftEnd to qExtendDir end (start 0.5 units to the right of zLeftEnd)
+const arcArrowStart = zLeftEnd.clone().add(new THREE.Vector3(0.15, 0, 0.01));
+const qExtendEnd = q.clone().add(qExtendDir.multiplyScalar(1));
+const arcArrowEnd = qExtendEnd.clone().add(new THREE.Vector3(0, 0, 0));
+scene.add(flatArcArrow(arcArrowStart, arcArrowEnd));
+
+// γ label (near the arc arrow)
+const gammaPos = arcArrowStart.clone().add(arcArrowEnd).multiplyScalar(0.5).add(new THREE.Vector3(-0.2, 0.1, 0));
+label("γ", gammaPos);
+
 // Line from ẑ to q̂ (always solid, not occluded)
 const zqLine = new THREE.Line(
   new THREE.BufferGeometry().setFromPoints([zHat, qHat]),
@@ -186,21 +204,15 @@ const dzPos = z.clone().add(q.clone().sub(z).multiplyScalar(0.5)).add(new THREE.
 label("dz", dzPos);
 
 // Dotted line from O to z (not occluded)
-const OzGeom = new THREE.BufferGeometry().setFromPoints([O, z]);
-const OzMat = new THREE.LineDashedMaterial({ color: 0xffffff, dashSize: 0.05, gapSize: 0.05, depthTest: false });
-const OzLine = new THREE.Line(OzGeom, OzMat);
-OzLine.computeLineDistances();
-OzLine.renderOrder = 999;
-scene.add(OzLine);
+scene.add(denseDottedLine(O, z, 0xffffff, 0.05, 0.05));
+
+// r label (near the O-z line)
+const rPos = O.clone().add(z).multiplyScalar(0.5).add(new THREE.Vector3(0.2, 0, 0));
+label("r", rPos);
 
 // Dotted line from O going left (not occluded)
 const OLeftEnd = new THREE.Vector3(-0.5, 0, 0);
-const OLeftGeom = new THREE.BufferGeometry().setFromPoints([O, OLeftEnd]);
-const OLeftMat = new THREE.LineDashedMaterial({ color: 0xffffff, dashSize: 0.02, gapSize: 0.02, depthTest: false });
-const OLeftLine = new THREE.Line(OLeftGeom, OLeftMat);
-OLeftLine.computeLineDistances();
-OLeftLine.renderOrder = 999;
-scene.add(OLeftLine);
+scene.add(denseDottedLine(O, OLeftEnd));
 
 // Dotted arc from left line end to O-z line (angle θ)
 scene.add(dottedArc(O, 0.5, Math.PI, Math.atan2(z.z, z.x), 0.01));
@@ -253,6 +265,78 @@ function flatArrow(start, end, color = 0xffffff, shaftWidth = 0.03, headLen = 0.
   return group;
 }
 
+function flatArcArrow(start, end, color = 0xffffff, shaftWidth = 0.02, headLen = 0.2, headWidth = 0.05, arcHeight = 0.1) {
+  const group = new THREE.Group();
+  const dir = end.clone().sub(start);
+  const len = dir.length();
+  const dirNorm = dir.clone().normalize();
+  const perp = new THREE.Vector3(-dirNorm.z, 0, dirNorm.x).normalize();
+  const shaftEnd = start.clone().add(dirNorm.clone().multiplyScalar(len - headLen));
+  
+  // Arc body (curved from start to shaftEnd) - use consistent y from start
+  const yPos = start.y + 0.01;
+  const midPoint = start.clone().add(dirNorm.clone().multiplyScalar(len / 2 - headLen / 2));
+  midPoint.y = yPos;
+  const arcControl = midPoint.clone().add(perp.clone().multiplyScalar(arcHeight));
+  arcControl.y = yPos;
+  
+  // Create arc points using quadratic Bezier curve
+  const arcPts = [];
+  for (let i = 0; i <= 32; i++) {
+    const t = i / 32;
+    const pt = new THREE.Vector3();
+    pt.x = (1-t)*(1-t)*start.x + 2*(1-t)*t*arcControl.x + t*t*shaftEnd.x;
+    pt.y = yPos;
+    pt.z = (1-t)*(1-t)*start.z + 2*(1-t)*t*arcControl.z + t*t*shaftEnd.z;
+    arcPts.push(pt);
+  }
+  // Add one more point extending past shaftEnd to close gap with head
+  const lastSegDir = shaftEnd.clone().sub(arcPts[arcPts.length - 2]).normalize();
+  const overlapPt = shaftEnd.clone().add(lastSegDir.clone().multiplyScalar(0.05));
+  overlapPt.y = yPos;
+  arcPts.push(overlapPt);
+  
+  // Create ribbon geometry along the arc - use consistent perpendicular in x-z plane
+  const shaftVerts = [];
+  for (let i = 0; i < arcPts.length - 1; i++) {
+    const p1 = arcPts[i];
+    const p2 = arcPts[i + 1];
+    const segDir = p2.clone().sub(p1).normalize();
+    // Perpendicular in x-z plane (same as flatArrow)
+    const segPerp = new THREE.Vector3(-segDir.z, 0, segDir.x).normalize();
+    const w1 = p1.clone().add(segPerp.clone().multiplyScalar(shaftWidth / 2));
+    const w2 = p1.clone().sub(segPerp.clone().multiplyScalar(shaftWidth / 2));
+    const w3 = p2.clone().sub(segPerp.clone().multiplyScalar(shaftWidth / 2));
+    const w4 = p2.clone().add(segPerp.clone().multiplyScalar(shaftWidth / 2));
+    
+    shaftVerts.push(w1.x, w1.y, w1.z, w2.x, w2.y, w2.z, w3.x, w3.y, w3.z);
+    shaftVerts.push(w1.x, w1.y, w1.z, w3.x, w3.y, w3.z, w4.x, w4.y, w4.z);
+  }
+  
+  const shaftGeo = new THREE.BufferGeometry();
+  shaftGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(shaftVerts), 3));
+  const shaft = new THREE.Mesh(shaftGeo, new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide, depthTest: false }));
+  shaft.renderOrder = 999;
+  group.add(shaft);
+  
+  // Head (flat triangle at end) - align with arc tangent at shaftEnd
+  // lastSegDir already calculated above
+  const tip = shaftEnd.clone().add(lastSegDir.clone().multiplyScalar(headLen));
+  tip.y = yPos;
+  const lastPerp = new THREE.Vector3(-lastSegDir.z, 0, lastSegDir.x).normalize();
+  const base1 = shaftEnd.clone().add(lastPerp.clone().multiplyScalar(headWidth));
+  const base2 = shaftEnd.clone().sub(lastPerp.clone().multiplyScalar(headWidth));
+  const headGeo = new THREE.BufferGeometry();
+  headGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array([
+    tip.x, tip.y, tip.z, base1.x, base1.y, base1.z, base2.x, base2.y, base2.z
+  ]), 3));
+  const head = new THREE.Mesh(headGeo, new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide, depthTest: false }));
+  head.renderOrder = 999;
+  group.add(head);
+  
+  return group;
+}
+
 function dottedArc(center, radius, startAngle, endAngle, yOffset = 0.01, color = 0xffffff, dashSize = 0.02, gapSize = 0.02) {
   const arcPts = [];
   for (let i = 0; i <= 32; i++) {
@@ -269,6 +353,15 @@ function dottedArc(center, radius, startAngle, endAngle, yOffset = 0.01, color =
   arc.computeLineDistances();
   arc.renderOrder = 999;
   return arc;
+}
+
+function denseDottedLine(start, end, color = 0xffffff, dashSize = 0.02, gapSize = 0.02) {
+  const geom = new THREE.BufferGeometry().setFromPoints([start, end]);
+  const mat = new THREE.LineDashedMaterial({ color, dashSize, gapSize, depthTest: false });
+  const ln = new THREE.Line(geom, mat);
+  ln.computeLineDistances();
+  ln.renderOrder = 999;
+  return ln;
 }
 
 function dot(pos, color = 0xffffff, size = 0.05) {
