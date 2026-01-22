@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Needham – Central Projection</title>
+<title>Needham - Hemisphere + Tangent Plane</title>
 <style>
 html,body{margin:0;height:100%;background:#000;overflow:hidden}
 .label{
@@ -10,6 +10,14 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden}
   text-shadow:0 0 8px #000,0 0 3px #000;
   pointer-events:none;
   text-align:center;
+}
+.label-box{
+  color:#ccc;font-size:12px;font-family:Georgia,serif;font-style:italic;
+  background:rgba(30,30,30,.85);
+  border:1px solid rgba(150,150,150,.5);
+  border-radius:4px;padding:2px 8px;
+  text-shadow:0 0 4px #000;
+  pointer-events:none;
 }
 </style>
 </head>
@@ -173,6 +181,16 @@ scene.add(zqLine);
 const zToQOffset = q.clone().sub(z).normalize().multiplyScalar(0.06);  // torus radius
 scene.add(flatArrow(z.clone().add(zToQOffset), q));
 
+// dz label (near the arrow)
+const dzPos = z.clone().add(q.clone().sub(z).multiplyScalar(0.5)).add(new THREE.Vector3(0.06, -0.1, 0));
+label("dz", dzPos);
+
+// ds hat label box (left side of plane, above ds)
+labelBox("<span style='position:relative'>ds<span style='position:absolute;left:0;right:0;top:-0.5em;text-align:center'>^</span></span>", new THREE.Vector3(-1.2, 0.5, 1.5));
+
+// ds label box (left side of plane)
+labelBox("ds", new THREE.Vector3(-1.5, 0.35, 2.5));
+
 //Helper functions
 function flatArrow(start, end, color = 0xffffff, shaftWidth = 0.03, headLen = 0.15, headWidth = 0.08) {
   const group = new THREE.Group();
@@ -264,6 +282,16 @@ function line(a, b, color = 0xffffff) {
 function label(text, pos) {
   const div = document.createElement("div");
   div.className = "label";
+  div.innerHTML = text;
+  const lbl = new CSS3DObject(div);
+  lbl.position.copy(pos);
+  lbl.scale.setScalar(0.01);
+  scene.add(lbl);
+}
+
+function labelBox(text, pos) {
+  const div = document.createElement("div");
+  div.className = "label-box";
   div.innerHTML = text;
   const lbl = new CSS3DObject(div);
   lbl.position.copy(pos);
