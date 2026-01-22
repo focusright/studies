@@ -149,7 +149,7 @@ const qHat = new THREE.Vector3(
 );
 const qHatNormal = qHat.clone().sub(new THREE.Vector3(0, R, 0)).normalize();
 scene.add(circle(qHat, qHatNormal, 0xffffff, 0.04, 0.008));
-label("<span style='position:relative'>q<span style='position:absolute;left:0;right:0;top:-0.5em;text-align:center'>^</span></span>", qHat.clone().add(new THREE.Vector3(0.1, -0.15, 0)));
+label("<span style='position:relative'>q<span style='position:absolute;left:0;right:0;top:-0.5em;text-align:center'>^</span></span>", qHat.clone().add(new THREE.Vector3(-0.1, 0.15, 0)));
 
 // Project from C through q̂ to plane (y=0)
 const dirQ = qHat.clone().sub(C);
