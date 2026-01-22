@@ -23,19 +23,19 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden}
 <script type="module">
 import * as THREE from "https://esm.sh/three@0.160.0";
 import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
-import { CSS2DRenderer, CSS2DObject } from "https://esm.sh/three@0.160.0/examples/jsm/renderers/CSS2DRenderer.js";
+import { CSS3DRenderer, CSS3DObject } from "https://esm.sh/three@0.160.0/examples/jsm/renderers/CSS3DRenderer.js";
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
 
 const camera = new THREE.PerspectiveCamera(35,innerWidth/innerHeight,0.01,100);
-camera.position.set(-0.14, 4.28, 11.32);
+camera.position.set(0.05, 4.37, 11.29);
 
 const renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth,innerHeight);
 document.body.appendChild(renderer.domElement);
 
-const labelRenderer = new CSS2DRenderer();
+const labelRenderer = new CSS3DRenderer();
 labelRenderer.setSize(innerWidth,innerHeight);
 labelRenderer.domElement.style.position="absolute";
 labelRenderer.domElement.style.top="0";
@@ -117,17 +117,7 @@ const rim = new THREE.Line(
 );
 scene.add(rim);
 
-/* Base circle (where hemisphere meets plane) */
-const basePts = [...Array(128)].map((_,i)=>{
-  const a = i/128*Math.PI*2;
-  return new THREE.Vector3(R*Math.cos(a), 0.01, R*Math.sin(a));
-});
-basePts.push(basePts[0]);
-const baseCircle = new THREE.Line(
-  new THREE.BufferGeometry().setFromPoints(basePts),
-  new THREE.LineBasicMaterial({color:0x666666})
-);
-scene.add(baseCircle);
+
 
 /* ========== KEY POINTS ========== */
 
@@ -310,8 +300,9 @@ function label(text, pos, isLarge=false) {
   div.className = "label";
   div.innerHTML = text.replace(/\n/g, "<br>");
   if(isLarge) div.style.fontSize = "14px";
-  const lbl = new CSS2DObject(div);
+  const lbl = new CSS3DObject(div);
   lbl.position.copy(pos);
+  lbl.scale.setScalar(0.01); // Scale down for 3D space
   scene.add(lbl);
 }
 
@@ -319,8 +310,9 @@ function labelBox(text, pos) {
   const div = document.createElement("div");
   div.className = "label-box";
   div.textContent = text;
-  const lbl = new CSS2DObject(div);
+  const lbl = new CSS3DObject(div);
   lbl.position.copy(pos);
+  lbl.scale.setScalar(0.01); // Scale down for 3D space
   scene.add(lbl);
 }
 
