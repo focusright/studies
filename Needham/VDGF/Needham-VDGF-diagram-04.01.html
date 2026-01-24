@@ -31,7 +31,8 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
 
 const camera = new THREE.PerspectiveCamera(35, innerWidth/innerHeight, 0.01, 100);
-camera.position.set(0.05, 4.37, 11.29);
+camera.position.set(0, 4, 13);
+//camera.position.set(0, 14.2, 0);
 
 const renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth, innerHeight);
@@ -120,25 +121,22 @@ const C = new THREE.Vector3(0, R, 0);
 scene.add(dot(C));
 label("C", C.clone().add(new THREE.Vector3(0, 0.15, 0)));
 
-// Pick a point on hemisphere
-const theta = 1.9;  // Angle around Y axis
+// z at distance 2 from O (direction chosen first, then zHat placed on C→z)
+const theta = 1.9;  // Angle around Y axis (determines direction from O)
 const phi = 0.9;    // Angle from pole (0=pole, PI/2=rim)
+const zDirFromO = new THREE.Vector3(
+  Math.sin(phi) * Math.cos(theta),
+  0,
+  Math.sin(phi) * Math.sin(theta)
+).normalize();
+const z = O.clone().add(zDirFromO.multiplyScalar(2));
 
-// Calculate ẑ position on hemisphere surface
-const zHat = new THREE.Vector3(
-  R * Math.sin(phi) * Math.cos(theta),
-  R * (1 - Math.cos(phi)),  // Height: 0 at pole, R at rim
-  R * Math.sin(phi) * Math.sin(theta)
-);
-// Normal at ẑ: points outward from sphere center (0, R, 0) toward ẑ
-const zHatNormal = zHat.clone().sub(new THREE.Vector3(0, R, 0)).normalize();
+// ẑ where ray C→z meets the hemisphere (sphere center C, radius R)
+const CtoZ = z.clone().sub(C).normalize();
+const zHat = C.clone().add(CtoZ.multiplyScalar(R));
+const zHatNormal = zHat.clone().sub(C).normalize();
 scene.add(circle(zHat, zHatNormal, 0xffffff, 0.04, 0.008));
 label("<span style='position:relative'>z<span style='position:absolute;left:0;right:0;top:-0.5em;text-align:center'>^</span></span>", zHat.clone().add(new THREE.Vector3(0.1, -0, 0)));
-
-// Project from C through ẑ to plane (y=0)
-const dir = zHat.clone().sub(C);          // Direction from C to ẑ
-const t = -C.y / dir.y;                   // Parameter to reach y=0
-const z = C.clone().add(dir.multiplyScalar(t));
 // Normal at z: points up (flat on plane)
 const zNormal = new THREE.Vector3(0, 1, 0);
 scene.add(circle(z, zNormal));
@@ -147,9 +145,9 @@ label("z", z.clone().add(new THREE.Vector3(0.1, -0.15, 0)));
 // Draw the projection ray C → z
 scene.add(line(C, z));
 
-// q̂ - another point on hemisphere (closer to rim, slightly left of ẑ)
-const thetaQ = 2.0;
-const phiQ = 1.0;
+// q̂ - another point on hemisphere (close to ẑ so zq arrow is short)
+const thetaQ = 1.93;
+const phiQ = 0.93;
 const qHat = new THREE.Vector3(
   R * Math.sin(phiQ) * Math.cos(thetaQ),
   R * (1 - Math.cos(phiQ)),
@@ -195,19 +193,6 @@ const zqHatsLine = new THREE.Line(
 zqHatsLine.renderOrder = 999;
 scene.add(zqHatsLine);
 
-// Bracket next to zqHatsLine
-const yellow = new THREE.Color(0xffff00);
-const zqHatsMidpoint = zHat.clone().add(qHat).multiplyScalar(0.5);
-const zqHatsDir = qHat.clone().sub(zHat).normalize();
-const dsHatPos = new THREE.Vector3(-0.2, 1.2, 2.5);
-const bracketHatsPos = zqHatsMidpoint.clone().add(dsHatPos.clone().sub(zqHatsMidpoint).multiplyScalar(0.2));
-// Direction from bracket position toward zqHats midpoint (so bracket opens toward line, legs point at zHat and qHat)
-const bracketHatsToLine = zqHatsMidpoint.clone().sub(bracketHatsPos).normalize();
-const zqHatsLength = zHat.distanceTo(qHat);
-const bracketHatsGroup = bracket(bracketHatsPos, zqHatsLength, 0.15, zqHatsDir, bracketHatsToLine, yellow);
-scene.add(bracketHatsGroup);
-const longSideMidpoint1 = bracketHatsGroup.getLongSideMidpoint();
-scene.add(line(longSideMidpoint1, dsHatPos, yellow));
 // Arrow from z to q (start at edge of z's torus)
 const zToQOffset = q.clone().sub(z).normalize().multiplyScalar(0.06);  // torus radius
 scene.add(flatArrow(z.clone().add(zToQOffset), q));
@@ -234,34 +219,88 @@ scene.add(dottedArc(O, 0.45, Math.PI, Math.atan2(z.z, z.x), 0.01));
 // θ label (at midpoint of arc)
 label("θ", new THREE.Vector3(-0.3, 0.15, 0.2));
 
-// ds hat label box (left side of plane, above ds)
-labelBox("d<span style='position:relative'>s<span style='position:absolute;left:-0.1em;right:0;top:-0.2em;text-align:center'>^</span></span>", dsHatPos);
+// fork from q to z
+const fork1 = fork(q, z, -110);
+scene.add(fork1);
 
 // ds label box (left side of plane)
-const dsPos = new THREE.Vector3(-0.3, 0.3, 3.5);
+const dsPos = fork1.getHandleEndpoint();
 labelBox("ds", dsPos);
 
-// Bracket next to zq flatArrow
-const zqMidpoint = z.clone().add(q).multiplyScalar(0.5);
-const zqDir = q.clone().sub(z).normalize();
-const bracketPos = zqMidpoint.clone().add(dsPos.clone().sub(zqMidpoint).multiplyScalar(0.2));
-// Direction from bracket position toward zq midpoint (so bracket opens toward line, legs point at z and q)
-const bracketToLine = zqMidpoint.clone().sub(bracketPos).normalize();
-// Use zqDir as the long side direction, opening toward the line so legs point at z and q
-const zqLength = z.distanceTo(q);
-const bracketGroup = bracket(bracketPos, zqLength, 0.15, zqDir, bracketToLine, yellow);
-scene.add(bracketGroup);
+const fork2 = fork(qHat, zHat, -90);
+scene.add(fork2);
 
-// Line from bracket's long side to ds labelbox
-const longSideMidpoint2 = bracketGroup.getLongSideMidpoint();
-scene.add(line(longSideMidpoint2, dsPos, yellow));
+// ds hat label box (left side of plane, above ds)
+const dsHatPos = fork2.getHandleEndpoint();
+labelBox("d<span style='position:relative'>s<span style='position:absolute;left:-0.1em;right:0;top:-0.2em;text-align:center'>^</span></span>", dsHatPos);
 
-// Arc arrow from ds labelbox to center of dz
-//const dsArrowStart = dsPos.clone().add(new THREE.Vector3(0, -0.1, 0));
-//const dsArrowEnd = dzPos.clone().add(new THREE.Vector3(0, 0, 0));
-//scene.add(flatArcArrow(dsArrowStart, dsArrowEnd, 0xffffff, 0.02, 0.2, 0.05, 0.5, new THREE.Vector3(1, 1, 0)));
+
 
 //Helper functions
+function fork(p1, p2, rotation = 0, handleLength = 0.7, bufferLength = 0.1, prongLength = 0.1, color = 0xffff00) {
+  const group = new THREE.Group();
+  const up = new THREE.Vector3(0, 1, 0);
+
+  // 1) Baseline from p1 to p2
+  const baseline = p2.clone().sub(p1);
+  const baselineLen = baseline.length();
+  if (baselineLen === 0) return group;
+  const baselineDir = baseline.clone().divideScalar(baselineLen);
+
+  // 2) Initial \"direction\" in the base plane, perpendicular to baseline.
+  // Start from 'up' projected into the plane perpendicular to baseline.
+  let direction = up.clone().sub(
+    baselineDir.clone().multiplyScalar(up.dot(baselineDir))
+  );
+
+  // Fallback if up is (nearly) parallel to baseline
+  if (direction.lengthSq() < 1e-6) {
+    const fallback = new THREE.Vector3(0, 0, 1);
+    direction = fallback.sub(
+      baselineDir.clone().multiplyScalar(fallback.dot(baselineDir))
+    );
+  }
+  direction.normalize();
+
+  // Choose the orientation that makes the dot product with up as small as possible
+  // (i.e. direction tilted away from up)
+  if (direction.dot(up) > 0) direction.negate();
+
+  // 3) Apply rotation (degrees) within the base plane around the baseline axis
+  const rotRad = THREE.MathUtils.degToRad(rotation);
+  direction.applyAxisAngle(baselineDir, rotRad);
+
+  // Line 1: from startPoint1 to endPoint1
+  const startPoint1 = p1.clone().add(direction.clone().multiplyScalar(bufferLength));
+  const endPoint1 = startPoint1.clone().add(direction.clone().multiplyScalar(prongLength));
+
+  const mat = new THREE.LineBasicMaterial({ color, depthTest: false });
+  const line1 = new THREE.Line(new THREE.BufferGeometry().setFromPoints([startPoint1, endPoint1]), mat);
+  group.add(line1);
+
+  // Line 2: from startPoint2 to endPoint2 (translated copy of line 1)
+  const startPoint2 = p2.clone().add(direction.clone().multiplyScalar(bufferLength));
+  const endPoint2 = startPoint2.clone().add(direction.clone().multiplyScalar(prongLength));
+  const line2 = new THREE.Line(new THREE.BufferGeometry().setFromPoints([startPoint2, endPoint2]), mat);
+  group.add(line2);
+
+  const forkBase = new THREE.Line(new THREE.BufferGeometry().setFromPoints([endPoint1, endPoint2]), mat);
+  group.add(forkBase);
+
+  // Midpoint of the fork base (between endPoint1 and endPoint2)
+  const forkBaseMidpoint = endPoint1.clone().add(endPoint2).multiplyScalar(0.5);
+  const handleEndpoint = forkBaseMidpoint.clone().add(direction.clone().multiplyScalar(handleLength));
+  const handle = new THREE.Line(new THREE.BufferGeometry().setFromPoints([forkBaseMidpoint, handleEndpoint]), mat);
+  group.add(handle);
+
+  // Expose handleEndpoint so callers can query where the handle ends
+  group.getHandleEndpoint = function () {
+    return handleEndpoint.clone();
+  };
+
+  return group;
+}
+
 function flatArcArrow(start, end, color = 0xffffff, shaftWidth = 0.02, headLen = 0.2, headWidth = 0.05, arcHeight = 0.1, bendPlane = null) {
   const group = new THREE.Group();
   const dir = end.clone().sub(start);
@@ -432,95 +471,6 @@ function denseDottedLine(start, end, color = 0xffffff, dashSize = 0.02, gapSize 
   return ln;
 }
 
-function bracket(center, width, height, direction = null, upDirection = null, color = 0xffffff) {
-  const group = new THREE.Group();
-  const halfWidth = width / 2;
-  const halfHeight = height / 2;
-  
-  // Calculate perpendicular vectors in 3D
-  let along, perp, up;
-  
-  if (direction instanceof THREE.Vector3) {
-    // Use provided direction (long side parallel to this)
-    along = direction.clone().normalize();
-    
-    if (upDirection instanceof THREE.Vector3) {
-      // Use provided up direction (bracket opens in this direction)
-      up = upDirection.clone().normalize();
-      // Project upDirection onto plane perpendicular to along
-      const proj = up.clone().sub(along.clone().multiplyScalar(up.dot(along)));
-      if (proj.length() > 0.001) {
-        up = proj.normalize();
-      } else {
-        // Fallback if upDirection is parallel to along
-        const worldUp = new THREE.Vector3(0, 1, 0);
-        perp = along.clone().cross(worldUp);
-        if (perp.length() < 0.001) {
-          perp = along.clone().cross(new THREE.Vector3(1, 0, 0));
-        }
-        perp.normalize();
-        up = perp.clone().cross(along).normalize();
-      }
-      perp = along.clone().cross(up).normalize();
-    } else {
-      // Default: calculate up from world up
-      const worldUp = new THREE.Vector3(0, 1, 0);
-      perp = along.clone().cross(worldUp);
-      if (perp.length() < 0.001) {
-        perp = along.clone().cross(new THREE.Vector3(1, 0, 0));
-      }
-      perp.normalize();
-      up = perp.clone().cross(along).normalize();
-    }
-  } else {
-    // Default: horizontal orientation (U opening upward)
-    along = new THREE.Vector3(1, 0, 0);
-    perp = new THREE.Vector3(0, 0, 1);
-    up = new THREE.Vector3(0, 1, 0);
-  }
-  
-  // Calculate 4 corner points: U shape opening in the up direction
-  // p1: bottom-left, p2: top-left, p3: top-right, p4: bottom-right
-  const p1 = center.clone().add(along.clone().multiplyScalar(-halfWidth)).add(up.clone().multiplyScalar(-halfHeight));
-  const p2 = center.clone().add(along.clone().multiplyScalar(-halfWidth)).add(up.clone().multiplyScalar(halfHeight));
-  const p3 = center.clone().add(along.clone().multiplyScalar(halfWidth)).add(up.clone().multiplyScalar(halfHeight));
-  const p4 = center.clone().add(along.clone().multiplyScalar(halfWidth)).add(up.clone().multiplyScalar(-halfHeight));
-  
-  const mat = new THREE.LineBasicMaterial({ color, depthTest: false });
-  
-  // Left vertical line (p1 to p2)
-  const leftLine = new THREE.Line(
-    new THREE.BufferGeometry().setFromPoints([p1, p2]),
-    mat
-  );
-  leftLine.renderOrder = 999;
-  group.add(leftLine);
-  
-  // Bottom horizontal line (p1 to p4) - the long side
-  const bottomLine = new THREE.Line(
-    new THREE.BufferGeometry().setFromPoints([p1, p4]),
-    mat
-  );
-  bottomLine.renderOrder = 999;
-  group.add(bottomLine);
-  
-  // Right vertical line (p4 to p3)
-  const rightLine = new THREE.Line(
-    new THREE.BufferGeometry().setFromPoints([p4, p3]),
-    mat
-  );
-  rightLine.renderOrder = 999;
-  group.add(rightLine);
-  
-  // Add method to get the midpoint of the long side
-  group.getLongSideMidpoint = function() {
-    // The long side is from p1 to p4, midpoint is center - up*halfHeight
-    return center.clone().sub(up.clone().multiplyScalar(halfHeight));
-  };
-  
-  return group;
-}
-
 function dot(pos, color = 0xffffff, size = 0.05) {
   const mesh = new THREE.Mesh(
     new THREE.SphereGeometry(size, 16, 16),
@@ -626,9 +576,10 @@ addEventListener("keydown", (e) => {
   if (e.key === 'p' || e.key === 'P') {
     const p = camera.position;
     const t = controls.target;
-    alert(`Position: (${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)})\nTarget: (${t.x.toFixed(2)}, ${t.y.toFixed(2)}, ${t.z.toFixed(2)})`);
+    console.log(`Position: (${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)})\nTarget: (${t.x.toFixed(2)}, ${t.y.toFixed(2)}, ${t.z.toFixed(2)})`);
   }
 });
+
 </script>
 </body>
 </html>
