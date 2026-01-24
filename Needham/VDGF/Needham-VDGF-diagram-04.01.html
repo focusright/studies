@@ -27,12 +27,15 @@ import * as THREE from "https://esm.sh/three@0.160.0";
 import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
 import { CSS3DRenderer, CSS3DObject } from "https://esm.sh/three@0.160.0/examples/jsm/renderers/CSS3DRenderer.js";
 
+const BLACK = new THREE.Color(0x000000);
+const WHITE = new THREE.Color(0xffffff);
+const YELLOW = new THREE.Color(0xffff00);
+
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x000000);
+scene.background = new THREE.Color(BLACK);
 
 const camera = new THREE.PerspectiveCamera(35, innerWidth/innerHeight, 0.01, 100);
 camera.position.set(0, 4, 13);
-//camera.position.set(0, 14.2, 0);
 
 const renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth, innerHeight);
@@ -113,7 +116,7 @@ scene.add(new THREE.Line(
 
 // O - Origin (where pole touches plane)
 const O = new THREE.Vector3(0, 0, 0);
-scene.add(circle(O, new THREE.Vector3(0, 1, 0), 0xffffff, 0.04, 0.008));
+scene.add(circle(O, new THREE.Vector3(0, 1, 0), WHITE, 0.04, 0.008));
 label("O", O.clone().add(new THREE.Vector3(0, 0.1, 0)));
 
 // C - Center of sphere (at rim level)
@@ -135,7 +138,7 @@ const z = O.clone().add(zDirFromO.multiplyScalar(2));
 const CtoZ = z.clone().sub(C).normalize();
 const zHat = C.clone().add(CtoZ.multiplyScalar(R));
 const zHatNormal = zHat.clone().sub(C).normalize();
-scene.add(circle(zHat, zHatNormal, 0xffffff, 0.04, 0.008));
+scene.add(circle(zHat, zHatNormal, WHITE, 0.04, 0.008));
 label("<span style='position:relative'>z<span style='position:absolute;left:0;right:0;top:-0.5em;text-align:center'>^</span></span>", zHat.clone().add(new THREE.Vector3(0.1, -0, 0)));
 // Normal at z: points up (flat on plane)
 const zNormal = new THREE.Vector3(0, 1, 0);
@@ -154,7 +157,7 @@ const qHat = new THREE.Vector3(
   R * Math.sin(phiQ) * Math.sin(thetaQ)
 );
 const qHatNormal = qHat.clone().sub(new THREE.Vector3(0, R, 0)).normalize();
-scene.add(circle(qHat, qHatNormal, 0xffffff, 0.04, 0.008));
+scene.add(circle(qHat, qHatNormal, WHITE, 0.04, 0.008));
 label("<span style='position:relative'>q<span style='position:absolute;left:0;right:0;top:-0.5em;text-align:center'>^</span></span>", qHat.clone().add(new THREE.Vector3(-0.1, 0.1, 0)));
 
 // Project from C through q̂ to plane (y=0)
@@ -188,7 +191,7 @@ label("γ", gammaPos);
 // Line from ẑ to q̂ (always solid, not occluded)
 const zqHatsLine = new THREE.Line(
   new THREE.BufferGeometry().setFromPoints([zHat, qHat]),
-  new THREE.LineBasicMaterial({ color: 0xffffff, depthTest: false })
+  new THREE.LineBasicMaterial({ color: WHITE, depthTest: false })
 );
 zqHatsLine.renderOrder = 999;
 scene.add(zqHatsLine);
@@ -202,7 +205,7 @@ const dzPos = z.clone().add(q.clone().sub(z).multiplyScalar(0.5)).add(new THREE.
 label("dz", dzPos);
 
 // Dotted line from O to z (not occluded)
-scene.add(denseDottedLine(O, z, 0xffffff, 0.05, 0.05));
+scene.add(denseDottedLine(O, z, WHITE, 0.05, 0.05));
 
 // r label (near the O-z line)
 const rPos = O.clone().add(z).multiplyScalar(0.5).add(new THREE.Vector3(0.2, 0, 0));
@@ -227,7 +230,7 @@ scene.add(fork1);
 const dsPos = fork1.getHandleEndpoint();
 labelBox("ds", dsPos);
 
-const fork2 = fork(qHat, zHat, -90);
+const fork2 = fork(qHat, zHat, -60);
 scene.add(fork2);
 
 // ds hat label box (left side of plane, above ds)
@@ -237,7 +240,7 @@ labelBox("d<span style='position:relative'>s<span style='position:absolute;left:
 
 
 //Helper functions
-function fork(p1, p2, rotation = 0, handleLength = 0.7, bufferLength = 0.1, prongLength = 0.1, color = 0xffff00) {
+function fork(p1, p2, rotation = 0, handleLength = 0.7, bufferLength = 0.1, prongLength = 0.1, color = YELLOW) {
   const group = new THREE.Group();
   const up = new THREE.Vector3(0, 1, 0);
 
@@ -301,7 +304,7 @@ function fork(p1, p2, rotation = 0, handleLength = 0.7, bufferLength = 0.1, pron
   return group;
 }
 
-function flatArcArrow(start, end, color = 0xffffff, shaftWidth = 0.02, headLen = 0.2, headWidth = 0.05, arcHeight = 0.1, bendPlane = null) {
+function flatArcArrow(start, end, color = WHITE, shaftWidth = 0.02, headLen = 0.2, headWidth = 0.05, arcHeight = 0.1, bendPlane = null) {
   const group = new THREE.Group();
   const dir = end.clone().sub(start);
   const len = dir.length();
@@ -407,7 +410,7 @@ function flatArcArrow(start, end, color = 0xffffff, shaftWidth = 0.02, headLen =
   return group;
 }
 
-function flatArrow(start, end, color = 0xffffff, shaftWidth = 0.03, headLen = 0.15, headWidth = 0.08) {
+function flatArrow(start, end, color = WHITE, shaftWidth = 0.03, headLen = 0.15, headWidth = 0.08) {
   const group = new THREE.Group();
   const dir = end.clone().sub(start);
   const len = dir.length();
@@ -444,7 +447,7 @@ function flatArrow(start, end, color = 0xffffff, shaftWidth = 0.03, headLen = 0.
   return group;
 }
 
-function dottedArc(center, radius, startAngle, endAngle, yOffset = 0.01, color = 0xffffff, dashSize = 0.02, gapSize = 0.02) {
+function dottedArc(center, radius, startAngle, endAngle, yOffset = 0.01, color = WHITE, dashSize = 0.02, gapSize = 0.02) {
   const arcPts = [];
   for (let i = 0; i <= 32; i++) {
     const a = startAngle + (endAngle - startAngle) * (i / 32);
@@ -462,7 +465,7 @@ function dottedArc(center, radius, startAngle, endAngle, yOffset = 0.01, color =
   return arc;
 }
 
-function denseDottedLine(start, end, color = 0xffffff, dashSize = 0.02, gapSize = 0.02) {
+function denseDottedLine(start, end, color = WHITE, dashSize = 0.02, gapSize = 0.02) {
   const geom = new THREE.BufferGeometry().setFromPoints([start, end]);
   const mat = new THREE.LineDashedMaterial({ color, dashSize, gapSize, depthTest: false });
   const ln = new THREE.Line(geom, mat);
@@ -471,7 +474,7 @@ function denseDottedLine(start, end, color = 0xffffff, dashSize = 0.02, gapSize 
   return ln;
 }
 
-function dot(pos, color = 0xffffff, size = 0.05) {
+function dot(pos, color = WHITE, size = 0.05) {
   const mesh = new THREE.Mesh(
     new THREE.SphereGeometry(size, 16, 16),
     new THREE.MeshBasicMaterial({ color, depthTest: false })
@@ -481,7 +484,7 @@ function dot(pos, color = 0xffffff, size = 0.05) {
   return mesh;
 }
 
-function circle(pos, normal, color = 0xffffff, radius = 0.06, tubeRadius = 0.012) {
+function circle(pos, normal, color = WHITE, radius = 0.06, tubeRadius = 0.012) {
   // Create a torus (3D ring) oriented perpendicular to the normal
   const geom = new THREE.TorusGeometry(radius, tubeRadius, 8, 32);
   const mat = new THREE.MeshBasicMaterial({ color, depthTest: false });
@@ -497,7 +500,7 @@ function circle(pos, normal, color = 0xffffff, radius = 0.06, tubeRadius = 0.012
   return torus;
 }
 
-function line(a, b, color = 0xffffff) {
+function line(a, b, color = WHITE) {
   const group = new THREE.Group();
   const points = [a, b];
   
