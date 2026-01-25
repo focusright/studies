@@ -122,7 +122,7 @@ label("O", O.clone().add(new THREE.Vector3(0, 0.1, 0)));
 // C - Center of sphere (at rim level)
 const C = new THREE.Vector3(0, R, 0);
 scene.add(dot(C));
-label("C", C.clone().add(new THREE.Vector3(0, 0.15, 0)));
+label("c", C.clone().add(new THREE.Vector3(0, 0.15, 0)));
 
 // z at distance 2 from O (direction chosen first, then zHat placed on C→z)
 const theta = 1.9;  // Angle around Y axis (determines direction from O)
@@ -242,25 +242,48 @@ const c = new THREE.Vector3(0, R, 0);
 
 // Define a right circular cone by its base circle
 // Base circle center (below the plane, going down in y direction)
-const coneBaseCenter = new THREE.Vector3(-2.5, -1.5, 1.5);  // Below y=0
+const coneBaseCenter = new THREE.Vector3(-5, -1.5, 5);  // Below y=0
 const coneBaseRadius = 0.4;  // Radius of the base circle
 
 // Plane for ellipse E (on the tangent plane)
 const ellipseEPlaneY = 0.0;  // y coordinate of the plane
 
 // Generate points on the cone base circle (for parameterizing the cone)
+// The base circle should be orthogonal to the cone axis
+const coneAxis = coneBaseCenter.clone().sub(c).normalize();
+
+// Find two perpendicular vectors in the plane orthogonal to the cone axis
+// Use up vector (0,1,0) as reference, project it onto the plane
+const up = new THREE.Vector3(0, 1, 0);
+let u = up.clone().sub(coneAxis.clone().multiplyScalar(up.dot(coneAxis))).normalize();
+// If up is parallel to axis, use a different reference
+if (u.length() < 0.001) {
+  const right = new THREE.Vector3(1, 0, 0);
+  u = right.clone().sub(coneAxis.clone().multiplyScalar(right.dot(coneAxis))).normalize();
+}
+// Second perpendicular vector via cross product
+const v = u.clone().cross(coneAxis).normalize();
+
+// Generate circle points in the plane orthogonal to the axis
 const numConePoints = 64;
 const baseCirclePoints = [];
 for (let i = 0; i < numConePoints; i++) {
   const t = (i / numConePoints) * Math.PI * 2;
-  // Create a circle in a plane perpendicular to the cone axis
-  // For simplicity, use a horizontal circle (in xz plane) at the base center
-  baseCirclePoints.push(new THREE.Vector3(
-    coneBaseCenter.x + coneBaseRadius * Math.cos(t),
-    coneBaseCenter.y,
-    coneBaseCenter.z + coneBaseRadius * Math.sin(t)
-  ));
+  const point = coneBaseCenter.clone().add(
+    u.clone().multiplyScalar(coneBaseRadius * Math.cos(t))
+  ).add(
+    v.clone().multiplyScalar(coneBaseRadius * Math.sin(t))
+  );
+  baseCirclePoints.push(point);
 }
+
+// TEMPORARY: Draw the cone base circle
+// const baseCircleLine = new THREE.LineLoop(
+//   new THREE.BufferGeometry().setFromPoints(baseCirclePoints),
+//   new THREE.LineBasicMaterial({ color: 0xff0000, depthTest: false })  // Red color to indicate temporary
+// );
+// baseCircleLine.renderOrder = 999;
+// scene.add(baseCircleLine);
 
 // Generate points for circle C (intersection of cone with sphere)
 const circleCPoints = [];
@@ -309,7 +332,7 @@ if (circleCPoints.length > 0) {
   circleCLine.renderOrder = 999;
   scene.add(circleCLine);
   // Label C for the circle (positioned near the circle)
-  const circleCLabelPos = circleCPoints[Math.floor(circleCPoints.length / 4)].clone().add(new THREE.Vector3(-0.2, 0.1, 0));
+  const circleCLabelPos = circleCPoints[0].clone().add(new THREE.Vector3(-0.1, 0.1, 0));
   label("C", circleCLabelPos);
 }
 
@@ -346,7 +369,7 @@ if (ellipseEPoints.length > 0) {
   const t_center = (ellipseEPlaneY - c.y) / ellipseECenterRay.y;
   const ellipseECenter = c.clone().add(ellipseECenterRay.clone().multiplyScalar(t_center));
   
-  label("E", ellipseECenter.clone().add(new THREE.Vector3(-0.3, 0.05, 0)));
+  label("E", ellipseECenter.clone().add(new THREE.Vector3(-0.5, 0, 0.5)));
   
   // Center point of ellipse E
   const ellipseCenterDot = dot(ellipseECenter, WHITE, 0.025);  // Half size of dot C
@@ -395,6 +418,11 @@ if (discriminant_center >= 0) {
   const circleCCenterDot = dot(circleCCenter, WHITE, 0.025);  // Half size of dot C
   scene.add(circleCCenterDot);
 }
+
+
+
+
+
 
 //Helper functions
 function fork(p1, p2, rotation = 0, handleLength = 0.7, bufferLength = 0.1, prongLength = 0.1, color = YELLOW) {
