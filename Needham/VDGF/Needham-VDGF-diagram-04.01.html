@@ -237,7 +237,164 @@ scene.add(fork2);
 const dsHatPos = fork2.getHandleEndpoint();
 labelBox("d<span style='position:relative'>s<span style='position:absolute;left:-0.1em;right:0;top:-0.2em;text-align:center'>^</span></span>", dsHatPos);
 
+// Cone apex c (at top center of hemisphere rim)
+const c = new THREE.Vector3(0, R, 0);
 
+// Define a right circular cone by its base circle
+// Base circle center (below the plane, going down in y direction)
+const coneBaseCenter = new THREE.Vector3(-2.5, -1.5, 1.5);  // Below y=0
+const coneBaseRadius = 0.4;  // Radius of the base circle
+
+// Plane for ellipse E (on the tangent plane)
+const ellipseEPlaneY = 0.0;  // y coordinate of the plane
+
+// Generate points on the cone base circle (for parameterizing the cone)
+const numConePoints = 64;
+const baseCirclePoints = [];
+for (let i = 0; i < numConePoints; i++) {
+  const t = (i / numConePoints) * Math.PI * 2;
+  // Create a circle in a plane perpendicular to the cone axis
+  // For simplicity, use a horizontal circle (in xz plane) at the base center
+  baseCirclePoints.push(new THREE.Vector3(
+    coneBaseCenter.x + coneBaseRadius * Math.cos(t),
+    coneBaseCenter.y,
+    coneBaseCenter.z + coneBaseRadius * Math.sin(t)
+  ));
+}
+
+// Generate points for circle C (intersection of cone with sphere)
+const circleCPoints = [];
+for (let i = 0; i < numConePoints; i++) {
+  const basePoint = baseCirclePoints[i];
+  // Ray from apex c through base point
+  const ray = basePoint.clone().sub(c).normalize();
+  
+  // Intersect ray with sphere (center C, radius R)
+  // Ray: p = c + t*ray
+  // Sphere: |p - C|² = R²
+  const d = c.clone().sub(C);
+  const a_coeff = 1;  // |ray|² = 1
+  const b_coeff = 2 * d.dot(ray);
+  const c_coeff = d.lengthSq() - R * R;
+  const discriminant = b_coeff * b_coeff - 4 * a_coeff * c_coeff;
+  
+  if (discriminant >= 0) {
+    const t1 = (-b_coeff + Math.sqrt(discriminant)) / (2 * a_coeff);
+    const t2 = (-b_coeff - Math.sqrt(discriminant)) / (2 * a_coeff);
+    const intersection1 = c.clone().add(ray.clone().multiplyScalar(t1));
+    const intersection2 = c.clone().add(ray.clone().multiplyScalar(t2));
+    
+    // Choose the intersection on the hemisphere (y >= 0)
+    let intersection;
+    if (intersection1.y >= 0 && intersection2.y >= 0) {
+      intersection = intersection1.distanceTo(basePoint) < intersection2.distanceTo(basePoint) ? intersection1 : intersection2;
+    } else if (intersection1.y >= 0) {
+      intersection = intersection1;
+    } else if (intersection2.y >= 0) {
+      intersection = intersection2;
+    } else {
+      intersection = intersection1.y > intersection2.y ? intersection1 : intersection2;
+    }
+    
+    circleCPoints.push(intersection);
+  }
+}
+
+// Create circle C line loop (solid, always visible)
+if (circleCPoints.length > 0) {
+  const circleCLine = new THREE.LineLoop(
+    new THREE.BufferGeometry().setFromPoints(circleCPoints),
+    new THREE.LineBasicMaterial({ color: 0xcccccc, depthTest: false })
+  );
+  circleCLine.renderOrder = 999;
+  scene.add(circleCLine);
+  // Label C for the circle (positioned near the circle)
+  const circleCLabelPos = circleCPoints[Math.floor(circleCPoints.length / 4)].clone().add(new THREE.Vector3(-0.2, 0.1, 0));
+  label("C", circleCLabelPos);
+}
+
+// Generate points for ellipse E (intersection of cone with plane)
+const ellipseEPoints = [];
+for (let i = 0; i < numConePoints; i++) {
+  const basePoint = baseCirclePoints[i];
+  // Ray from apex c through base point
+  const ray = basePoint.clone().sub(c).normalize();
+  
+  // Intersect ray with plane y = ellipseEPlaneY
+  // Ray: p = c + t*ray, so p.y = c.y + t*ray.y
+  // Plane: p.y = ellipseEPlaneY
+  // Therefore: c.y + t*ray.y = ellipseEPlaneY
+  // t = (ellipseEPlaneY - c.y) / ray.y
+  if (Math.abs(ray.y) > 1e-6) {
+    const t = (ellipseEPlaneY - c.y) / ray.y;
+    const intersection = c.clone().add(ray.clone().multiplyScalar(t));
+    ellipseEPoints.push(intersection);
+  }
+}
+
+// Create ellipse E line loop (solid, always visible)
+if (ellipseEPoints.length > 0) {
+  const ellipseELine = new THREE.LineLoop(
+    new THREE.BufferGeometry().setFromPoints(ellipseEPoints),
+    new THREE.LineBasicMaterial({ color: 0xcccccc, depthTest: false })
+  );
+  ellipseELine.renderOrder = 999;
+  scene.add(ellipseELine);
+  
+  // Find center of ellipse E (average of points, or project base center through c to plane)
+  const ellipseECenterRay = coneBaseCenter.clone().sub(c).normalize();
+  const t_center = (ellipseEPlaneY - c.y) / ellipseECenterRay.y;
+  const ellipseECenter = c.clone().add(ellipseECenterRay.clone().multiplyScalar(t_center));
+  
+  label("E", ellipseECenter.clone().add(new THREE.Vector3(-0.3, 0.05, 0)));
+  
+  // Center point of ellipse E
+  const ellipseCenterDot = dot(ellipseECenter, WHITE, 0.025);  // Half size of dot C
+  scene.add(ellipseCenterDot);
+}
+
+// Generate 8 evenly spaced points on ellipse E for cone lines
+const coneLinePoints = [];
+for (let i = 0; i < 8; i++) {
+  const idx = Math.floor((i / 8) * ellipseEPoints.length);
+  if (idx < ellipseEPoints.length) {
+    coneLinePoints.push(ellipseEPoints[idx]);
+  }
+}
+
+// Draw 8 cone lines from c to ellipse E points
+for (let i = 0; i < coneLinePoints.length; i++) {
+  scene.add(line(c, coneLinePoints[i]));
+}
+
+// Center point of circle C (project base center through c onto sphere)
+const baseCenterRay = coneBaseCenter.clone().sub(c).normalize();
+const d_center = c.clone().sub(C);
+const a_center = 1;
+const b_center = 2 * d_center.dot(baseCenterRay);
+const c_center = d_center.lengthSq() - R * R;
+const discriminant_center = b_center * b_center - 4 * a_center * c_center;
+
+if (discriminant_center >= 0) {
+  const t1_center = (-b_center + Math.sqrt(discriminant_center)) / (2 * a_center);
+  const t2_center = (-b_center - Math.sqrt(discriminant_center)) / (2 * a_center);
+  const intersection1_center = c.clone().add(baseCenterRay.clone().multiplyScalar(t1_center));
+  const intersection2_center = c.clone().add(baseCenterRay.clone().multiplyScalar(t2_center));
+  
+  let circleCCenter;
+  if (intersection1_center.y >= 0 && intersection2_center.y >= 0) {
+    circleCCenter = intersection1_center.distanceTo(coneBaseCenter) < intersection2_center.distanceTo(coneBaseCenter) ? intersection1_center : intersection2_center;
+  } else if (intersection1_center.y >= 0) {
+    circleCCenter = intersection1_center;
+  } else if (intersection2_center.y >= 0) {
+    circleCCenter = intersection2_center;
+  } else {
+    circleCCenter = intersection1_center.y > intersection2_center.y ? intersection1_center : intersection2_center;
+  }
+  
+  const circleCCenterDot = dot(circleCCenter, WHITE, 0.025);  // Half size of dot C
+  scene.add(circleCCenterDot);
+}
 
 //Helper functions
 function fork(p1, p2, rotation = 0, handleLength = 0.7, bufferLength = 0.1, prongLength = 0.1, color = YELLOW) {
