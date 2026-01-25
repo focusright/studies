@@ -143,7 +143,7 @@ label("<span style='position:relative'>z<span style='position:absolute;left:0;ri
 // Normal at z: points up (flat on plane)
 const zNormal = new THREE.Vector3(0, 1, 0);
 scene.add(circle(z, zNormal));
-label("z", z.clone().add(new THREE.Vector3(0.1, -0.15, 0)));
+label("z", z.clone().add(new THREE.Vector3(0, -0.1, 0)));
 
 // Draw the projection ray C → z
 scene.add(line(C, z));
@@ -165,7 +165,7 @@ const dirQ = qHat.clone().sub(C);
 const tQ = -C.y / dirQ.y;
 const q = C.clone().add(dirQ.multiplyScalar(tQ));
 scene.add(circle(q, new THREE.Vector3(0, 1, 0)));
-label("q", q.clone().add(new THREE.Vector3(-0.1, -0.15, 0)));
+label("q", q.clone().add(new THREE.Vector3(0, -0.1, 0)));
 
 // Draw the projection ray C → q
 scene.add(line(C, q));
@@ -201,7 +201,7 @@ const zToQOffset = q.clone().sub(z).normalize().multiplyScalar(0.06);  // torus 
 scene.add(flatArrow(z.clone().add(zToQOffset), q));
 
 // dz label (near the arrow)
-const dzPos = z.clone().add(q.clone().sub(z).multiplyScalar(0.5)).add(new THREE.Vector3(0.06, -0.1, 0));
+const dzPos = z.clone().add(q.clone().sub(z).multiplyScalar(0.5)).add(new THREE.Vector3(0, -0.1, 0));
 label("dz", dzPos);
 
 // Dotted line from O to z (not occluded)
