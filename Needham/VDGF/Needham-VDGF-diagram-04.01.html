@@ -70,6 +70,31 @@ scene.add(planeOutline);
 
 labelLarge("(complex)<br>tangent plane", new THREE.Vector3(4, 0.05, 1));
 
+// Thick line on lower right of plane
+const thickLineStart = new THREE.Vector3(0, 0, 4);
+const thickLineEnd = new THREE.Vector3(6, 0, -3);
+const thickLineDir = thickLineEnd.clone().sub(thickLineStart);
+const thickLineLength = thickLineDir.length();
+const thickLineRadius = 0.02;  // Thickness of the line
+
+// Create a cylinder for the thick line
+const thickLineCylinder = new THREE.CylinderGeometry(thickLineRadius, thickLineRadius, thickLineLength, 16, 1, false);
+const thickLineMat = new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false });
+const thickLine = new THREE.Mesh(thickLineCylinder, thickLineMat);
+
+// Position and orient the cylinder
+const midPoint = thickLineStart.clone().add(thickLineEnd).multiplyScalar(0.5);
+thickLine.position.copy(midPoint);
+thickLine.up.set(0, 1, 0);  // Default up direction
+thickLine.lookAt(thickLineEnd);  // Orient along the line direction
+thickLine.rotateX(Math.PI / 2);  // Rotate to align with line (cylinder is vertical by default)
+
+thickLine.renderOrder = 999;
+scene.add(thickLine);
+
+
+
+
 // Hemisphere
 const hemiGeo = new THREE.SphereGeometry(R, 64, 32, 0, Math.PI*2, 0, Math.PI/2);
 
@@ -239,6 +264,18 @@ labelBox("d<span style='position:relative'>s<span style='position:absolute;left:
 
 // Cone apex c (at top center of hemisphere rim)
 const c = new THREE.Vector3(0, R, 0);
+
+// Draw 4 lines from point c to evenly spaced points on the thick line (clustered together)
+const numThickLinePoints = 4;
+const offsetUnits = 2.5;  // Move 2.5 units closer to start
+const offsetT = offsetUnits / thickLineLength;  // Convert units to t parameter
+const clusterStart = 0.4 - offsetT;  // Start of cluster (0 to 1)
+const clusterEnd = 0.65 - offsetT;   // End of cluster (0 to 1)
+for (let i = 0; i < numThickLinePoints; i++) {
+  const t = clusterStart + (i / (numThickLinePoints - 1)) * (clusterEnd - clusterStart);
+  const pointOnThickLine = thickLineStart.clone().add(thickLineDir.clone().multiplyScalar(t));
+  scene.add(line(c, pointOnThickLine));
+}
 
 // Define a right circular cone by its base circle
 // Base circle center (below the plane, going down in y direction)
