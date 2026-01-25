@@ -267,14 +267,223 @@ const c = new THREE.Vector3(0, R, 0);
 
 // Draw 4 lines from point c to evenly spaced points on the thick line (clustered together)
 const numThickLinePoints = 4;
-const offsetUnits = 2.5;  // Move 2.5 units closer to start
+const offsetUnits = 3.0;  // Move 3 units closer to start
 const offsetT = offsetUnits / thickLineLength;  // Convert units to t parameter
 const clusterStart = 0.4 - offsetT;  // Start of cluster (0 to 1)
 const clusterEnd = 0.65 - offsetT;   // End of cluster (0 to 1)
+
+// Find intersection points of lines with hemisphere
+const intersectionPoints = [];
 for (let i = 0; i < numThickLinePoints; i++) {
   const t = clusterStart + (i / (numThickLinePoints - 1)) * (clusterEnd - clusterStart);
   const pointOnThickLine = thickLineStart.clone().add(thickLineDir.clone().multiplyScalar(t));
+  
+  // Ray from c through point on thick line
+  const ray = pointOnThickLine.clone().sub(c).normalize();
+  
+  // Intersect ray with sphere (center C, radius R)
+  const d = c.clone().sub(C);
+  const a_coeff = 1;
+  const b_coeff = 2 * d.dot(ray);
+  const c_coeff = d.lengthSq() - R * R;
+  const discriminant = b_coeff * b_coeff - 4 * a_coeff * c_coeff;
+  
+  if (discriminant >= 0) {
+    const t1 = (-b_coeff + Math.sqrt(discriminant)) / (2 * a_coeff);
+    const t2 = (-b_coeff - Math.sqrt(discriminant)) / (2 * a_coeff);
+    const intersection1 = c.clone().add(ray.clone().multiplyScalar(t1));
+    const intersection2 = c.clone().add(ray.clone().multiplyScalar(t2));
+    
+    // Choose the intersection on the hemisphere (y >= 0, closer to thick line)
+    let intersection;
+    if (intersection1.y >= 0 && intersection2.y >= 0) {
+      intersection = intersection1.distanceTo(pointOnThickLine) < intersection2.distanceTo(pointOnThickLine) ? intersection1 : intersection2;
+    } else if (intersection1.y >= 0) {
+      intersection = intersection1;
+    } else if (intersection2.y >= 0) {
+      intersection = intersection2;
+    } else {
+      intersection = intersection1.y > intersection2.y ? intersection1 : intersection2;
+    }
+    
+    intersectionPoints.push(intersection);
+  }
+  
   scene.add(line(c, pointOnThickLine));
+}
+
+// Compute great circle plane from intersection points and parameterize arc by the 4 points
+if (intersectionPoints.length >= 4) {
+  // Compute great circle normal from all 4 points (average of normals from different triplets)
+  let normalSum = new THREE.Vector3(0, 0, 0);
+  const numCombinations = 4;  // Use 4 different triplets
+  for (let i = 0; i < numCombinations; i++) {
+    const idx1 = i;
+    const idx2 = (i + 1) % 4;
+    const idx3 = (i + 2) % 4;
+    const p1 = intersectionPoints[idx1].clone().sub(C);
+    const p2 = intersectionPoints[idx2].clone().sub(C);
+    const p3 = intersectionPoints[idx3].clone().sub(C);
+    const v1 = p2.clone().sub(p1);
+    const v2 = p3.clone().sub(p1);
+    const n = v1.clone().cross(v2).normalize();
+    normalSum.add(n);
+  }
+  const greatCircleNormal = normalSum.normalize();
+  
+  // Create two perpendicular vectors in the great circle plane
+  const p1 = intersectionPoints[0].clone().sub(C).normalize();
+  const u = p1.clone();
+  const v = greatCircleNormal.clone().cross(u).normalize();
+  
+  // Compute angles for all 4 intersection points on the great circle
+  const pointAngles = [];
+  for (let i = 0; i < 4; i++) {
+    const pointVec = intersectionPoints[i].clone().sub(C).normalize();
+    const uComp = pointVec.dot(u);
+    const vComp = pointVec.dot(v);
+    const angle = Math.atan2(vComp, uComp);
+    pointAngles.push({ angle, index: i, point: intersectionPoints[i] });
+  }
+  
+  // Sort by angle
+  pointAngles.sort((a, b) => a.angle - b.angle);
+  
+  // Find where the great circle intersects the rim (y = R, on sphere)
+  const nx = greatCircleNormal.x;
+  const nz = greatCircleNormal.z;
+  
+  let rimPoint1, rimPoint2;
+  if (Math.abs(nz) > 1e-6) {
+    const theta1 = Math.atan2(-nx, nz);
+    const theta2 = Math.atan2(nx, -nz);
+    rimPoint1 = new THREE.Vector3(R * Math.cos(theta1), R, R * Math.sin(theta1));
+    rimPoint2 = new THREE.Vector3(R * Math.cos(theta2), R, R * Math.sin(theta2));
+  } else if (Math.abs(nx) > 1e-6) {
+    rimPoint1 = new THREE.Vector3(0, R, R);
+    rimPoint2 = new THREE.Vector3(0, R, -R);
+  } else {
+    rimPoint1 = new THREE.Vector3(R, R, 0);
+    rimPoint2 = new THREE.Vector3(-R, R, 0);
+  }
+  
+  // Compute angles for rim points
+  const rim1Vec = rimPoint1.clone().sub(C).normalize();
+  const rim2Vec = rimPoint2.clone().sub(C).normalize();
+  const rim1Angle = Math.atan2(rim1Vec.dot(v), rim1Vec.dot(u));
+  const rim2Angle = Math.atan2(rim2Vec.dot(v), rim2Vec.dot(u));
+  
+  // Determine which rim point is arcStart (before first intersection point) and which is arcEnd (after last)
+  // Find the rim point that comes before the first intersection point in angle
+  const firstAngle = pointAngles[0].angle;
+  const lastAngle = pointAngles[3].angle;
+  
+  // Normalize angles to find the correct arc path
+  let arcStartAngle, arcEndAngle;
+  const angleDiff = lastAngle - firstAngle;
+  
+  // Check which rim point fits better as start (before first point)
+  const rim1Diff = rim1Angle - firstAngle;
+  const rim2Diff = rim2Angle - firstAngle;
+  let normalizedRim1Diff = rim1Diff;
+  let normalizedRim2Diff = rim2Diff;
+  if (normalizedRim1Diff > Math.PI) normalizedRim1Diff -= 2 * Math.PI;
+  if (normalizedRim1Diff < -Math.PI) normalizedRim1Diff += 2 * Math.PI;
+  if (normalizedRim2Diff > Math.PI) normalizedRim2Diff -= 2 * Math.PI;
+  if (normalizedRim2Diff < -Math.PI) normalizedRim2Diff += 2 * Math.PI;
+  
+  if (normalizedRim1Diff < 0 && normalizedRim1Diff > normalizedRim2Diff) {
+    arcStartAngle = rim1Angle;
+    arcEndAngle = rim2Angle;
+  } else if (normalizedRim2Diff < 0 && normalizedRim2Diff > normalizedRim1Diff) {
+    arcStartAngle = rim2Angle;
+    arcEndAngle = rim1Angle;
+  } else {
+    // Use the rim point that comes after the last intersection point
+    if (normalizedRim1Diff > normalizedRim2Diff) {
+      arcStartAngle = rim2Angle;
+      arcEndAngle = rim1Angle;
+    } else {
+      arcStartAngle = rim1Angle;
+      arcEndAngle = rim2Angle;
+    }
+  }
+  
+  // Generate geodesic arc parameterized by the 4 intersection points
+  const geodesicPoints = [];
+  // Make it globally accessible for the update function
+  window.geodesicPoints = geodesicPoints;
+  const numGeodesicPoints = 256;
+  
+  // Create segments: arcStart -> point1 -> point2 -> point3 -> point4 -> arcEnd
+  const allPoints = [
+    { angle: arcStartAngle, isRim: true },
+    ...pointAngles.map(pa => ({ angle: pa.angle, isRim: false, point: pa.point })),
+    { angle: arcEndAngle, isRim: true }
+  ];
+  
+  // Sort all points by angle to get the correct order
+  allPoints.sort((a, b) => {
+    let diff = a.angle - b.angle;
+    if (diff > Math.PI) diff -= 2 * Math.PI;
+    if (diff < -Math.PI) diff += 2 * Math.PI;
+    return diff;
+  });
+  
+  // Generate points along the arc, ensuring we pass through all 4 intersection points
+  for (let seg = 0; seg < allPoints.length - 1; seg++) {
+    const startAngle = allPoints[seg].angle;
+    let endAngle = allPoints[seg + 1].angle;
+    
+    // Handle angle wrap
+    let angleDiff = endAngle - startAngle;
+    if (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+    if (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
+    
+    const segmentPoints = 64;
+    for (let i = 0; i <= segmentPoints; i++) {
+      const t = i / segmentPoints;
+      const angle = startAngle + t * angleDiff;
+      const pointOnPlane = u.clone().multiplyScalar(Math.cos(angle)).add(v.clone().multiplyScalar(Math.sin(angle)));
+      const pointOnSphere = C.clone().add(pointOnPlane.multiplyScalar(R));
+      
+      // Only include points on the hemisphere (y >= 0)
+      if (pointOnSphere.y >= 0) {
+        geodesicPoints.push(pointOnSphere);
+      }
+    }
+  }
+  
+  // Draw the geodesic arc using the exact same approach as the line() primitive
+  if (geodesicPoints.length > 1) {
+    const geodesicGroup = new THREE.Group();
+    const geodesicGeo = new THREE.BufferGeometry().setFromPoints(geodesicPoints);
+    
+    // Solid line for visible parts (normal depth test)
+    const solidMat = new THREE.LineBasicMaterial({ color: 0xcccccc, depthTest: true });
+    const solid = new THREE.Line(geodesicGeo.clone(), solidMat);
+    solid.renderOrder = 1;  // Render after hemisphere
+    geodesicGroup.add(solid);
+    
+    // Dashed line for occluded parts (render only behind geometry)
+    const dashedMat = new THREE.LineDashedMaterial({
+      color: 0xcccccc,
+      dashSize: 0.08,
+      gapSize: 0.04,
+      depthFunc: THREE.GreaterDepth
+    });
+    const dashed = new THREE.Line(geodesicGeo.clone(), dashedMat);
+    dashed.computeLineDistances();
+    dashed.renderOrder = 1;  // Render after hemisphere
+    geodesicGroup.add(dashed);
+    
+    geodesicGroup.renderOrder = 1;
+    scene.add(geodesicGroup);
+  }
+  
+  // Store arcStart and arcEnd for reference
+  const arcStart = rimPoint1;  // Will be determined by angle logic above
+  const arcEnd = rimPoint2;
 }
 
 // Define a right circular cone by its base circle
