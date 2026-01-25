@@ -481,9 +481,18 @@ if (intersectionPoints.length >= 4) {
     scene.add(geodesicGroup);
   }
   
-  // Store arcStart and arcEnd for reference
-  const arcStart = rimPoint1;  // Will be determined by angle logic above
-  const arcEnd = rimPoint2;
+  // Draw dashed line between rimPoint1 and rimPoint2
+  const rimLineGeo = new THREE.BufferGeometry().setFromPoints([rimPoint1, rimPoint2]);
+  const rimLineMat = new THREE.LineDashedMaterial({
+    color: 0xcccccc,
+    dashSize: 0.08,
+    gapSize: 0.04,
+    depthTest: false
+  });
+  const rimLine = new THREE.Line(rimLineGeo, rimLineMat);
+  rimLine.computeLineDistances();
+  rimLine.renderOrder = 999;
+  scene.add(rimLine);
 }
 
 // Define a right circular cone by its base circle
