@@ -1,0 +1,336 @@
+PRACTICE QUIZ
+Multivariate chain rule exercise
+
+
+1.
+For the following functions, calculate the expression 
+df/dt = ∂f/∂x dx/dt in matrix form, where X = (x₁, x₂).
+
+f(X) = f(x₁, x₂) = x₁²x₂² + x₁x₂
+x₁(t) = 1 - t²
+x₂(t) = 1 + t²
+  
+∂f/∂X = [ ∂f/∂x₁  ∂f/∂x₂ ] = [ 2x₁x₂² + x₂    2x₁²x₂ + x₁ ]
+dX/dt = [ dx₁/dt  dx₂/dt ] = [ -2t  2t ]
+
+                                       | -2t |
+df/dt = [ 2x₁x₂² + x₂    2x₁²x₂ + x₁ ] |  2t |
+
+
+
+2.
+For the following functions, calculate the expression 
+df/dt = ∂f/∂x dx/dt in matrix form, where X = (x₁, x₂, x₃).
+
+f(x) = f(x₁, x₂, x₃) = x₁³cos(x₂)e^x₃
+x₁(t) = 2t
+x₂(t) = 1 - t²
+x₃(t) = eᵗ
+
+∂f/∂X = [ 3x₁²cos(x₂)e^x₃   -x₁³sin(x₂)e^x₃   x₁³cos(x₂)e^x₃ ]
+dX/dt = [ 2  -2t  eᵗ ]
+                                                               |  2  |
+                                                               | -2t |
+df/dt = [ 3x₁²cos(x₂)e^x₃   -x₁³sin(x₂)e^x₃   x₁³cos(x₂)e^x₃ ] |  eᵗ |
+
+
+
+3.
+For the following functions, calculate the expression 
+df/dt = ∂f/∂x ∂x/∂u du/dt in matrix form, where x = (x₁, x₂) and u = (u₁, u₂).
+
+f(x) = f(x₁, x₂) = x₁² − x₂²
+x₁(u₁, u₂) = 2u₁ + 3u₂
+​x₂(u₁, u₂) = 2u₁ - 3u₂
+​u₁(t) = cos(t/2)
+u₂(t) = sin(2t)
+
+∂f/∂X = [ 2x₁  −2x₂ ]
+        | ∂x₁/∂u₁  ∂x₁/∂u₂ |   | 2   3 |
+dX/du = | ∂x₂/∂u₁  ∂x₂/∂u₂ | = | 2  -3 |
+dU/dt = [ -sin(t/2)/2  2cos(2t) ]
+                      | 2   3 | | -sin(t/2)/2 |           
+df/dt = [ 2x₁  −2x₂ ] | 2  -3 | |  2cos(2t)   |
+
+
+
+4.
+For the following functions, calculate the expression
+df/dt = ∂f/∂x ∂x/∂u du/dt in matrix form, where x = (x₁, x₂) and u = (u₁, u₂).
+
+f(x) = f(x₁, x₂) = cos(x₁)sin(x₂)
+x₁(u₁, u₂) = 2u₁² + 3u₂² - u₂
+​x₂(u₁, u₂) = 2u₁ - 5u₂³
+u₁(t) = eᵗ⸍²
+u₂(t) = e⁻²ᵗ
+
+∂f/∂X = [ -sin(x₁)sin(x₂)   cos(x₁)cos(x₂) ]
+        | 4u₁   6u₂ - 1 |
+dX/du = | 2     -15u₂²  |
+dU/dt = [ eᵗ⸍²/2   -2e⁻²ᵗ ]
+                                             | 4u₁   6u₂ - 1 | | eᵗ⸍²/2 |
+df/dt = [ -sin(x₁)sin(x₂)   cos(x₁)cos(x₂) ] | 2     -15u₂²  | | -2e⁻²ᵗ |
+
+
+
+5.
+For the following functions, calculate the expression
+df/dt = ∂f/∂x ∂x/∂u du/dt in matrix form, where x = (x₁, x₂, x₃) and u = (u₁, u₂).
+
+f(x) = f(x₁, x₂, x₃) = sin(x₁)cos(x₂)e^x₃
+x₁(u₁, u₂) = sin(u₁) + cos(u₂)
+x₂(u₁, u₂) = cos(u₁) - sin(u₂)
+x₃(u₁, u₂) = e^(u₁ + u₂)
+u₁(t) = 1 + t/2
+u₂(t) = 1 - t/2
+
+∂f/∂X = [ cos(x₁)cos(x₂)e^x₃   -sin(x₁)sin(x₂)e^x₃   sin(x₁)cos(x₂)e^x₃ ]
+        |  cos(u₁)        -sin(u₂)  |
+dX/du = |  -sin(u₁)       -cos(u₂)  |
+        | e^(u₁ + u₂)   e^(u₁ + u₂) |
+dU/dt = [ 1/2  -1/2 ] 
+                                                                          |  cos(u₁)        -sin(u₂)  |
+                                                                          |  -sin(u₁)       -cos(u₂)  | |  1/2 |
+df/dt = [ cos(x₁)cos(x₂)e^x₃   -sin(x₁)sin(x₂)e^x₃   sin(x₁)cos(x₂)e^x₃ ] | e^(u₁ + u₂)   e^(u₁ + u₂) | | -1/2 |
+
+
+
+
+
+
+PRACTICE QUIZ
+Simple Artificial Neural Networks
+
+
+2.
+
+σ = np.tanh
+w1 = 1.3
+b1 = -0.1
+
+def a1(a0) :
+  return σ(w1 * a0 + b1)
+
+def aa():
+  print(1)
+  print( σ(-3 * 1 + 0) )
+  print( σ(-3 * 0 + 0) )
+
+def ab():
+  print(2)
+  print( σ(-5 * 1 + 5) )
+  print( σ(-5 * 0 + 5) )
+
+def ac():
+  print(3)
+  print( σ( 0 * 1 + 5) )
+  print( σ( 0 * 0 + 5) )
+
+def ad():
+  print(4)
+  print( σ( 3 * 1 + 1) )
+  print( σ( 3 * 0 + 1) )
+
+def ae():
+  print(5)
+  print( σ(10 * 1 + 0) )
+  print( σ(10 * 0 + 0) )
+  
+aa()
+ab()
+ac()
+ad()
+ae()
+
+
+
+3.
+
+sigma = np.tanh
+W = np.array([[-2, 4, -1],[6, 0, -3]])
+b = np.array([0.1, -2.5])
+a0 = np.array([0.3, 0.4, 0.1])
+a1 = sigma((W @ a0) + b)
+
+
+
+
+
+
+
+
+PRACTICE QUIZ, 6 questions
+Training Neural Networks
+
+
+1.
+
+σ = np.tanh
+w1 = 1.3
+b1 = -0.1
+def a1(a0) :
+  z = w1 * a0 + b1
+  return σ(z)
+x = 0
+z = a1(x)
+c0 = (z - 1)**2 
+
+
+2.
+
+Graph this on a 3D graphing calculator.
+C = 1/N ∑ₖCₖ
+C = 1/2 (C₀ + C₁)
+Cₖ = (a⁽¹⁾ - y)²
+a⁽¹⁾ = tanh(w⁽¹⁾ * a⁽⁰⁾ + b⁽¹⁾) 
+
+C₁ = (tanh(w⁽¹⁾ * a⁽⁰⁾ + b⁽¹⁾) - y)²
+   = (tanh(w⁽¹⁾ * 1 + b⁽¹⁾) - 0)²
+   = tanh²(w⁽¹⁾ + b⁽¹⁾)
+
+C₀ = (tanh(w⁽¹⁾ * 0 + b⁽¹⁾) - 1)²
+   = (tanh(b⁽¹⁾) - 1)²
+
+C = 1/2 (C₀ + C₁) = 1/2 ( (tanh(b⁽¹⁾) - 1)² + tanh²(w⁽¹⁾ + b⁽¹⁾) )
+For graphing calculator take out the superscript 1's
+C = 1/2 ( (tanh(b) - 1)² + tanh²(w + b) )
+Z = 1/2 * ( (tanh(y) - 1)^2 + tanh(x + y)^2 )
+
+https://www.geogebra.org/3d/vqtrzbvm
+
+
+3.
+
+a⁽¹⁾ = σ(z⁽¹⁾)
+z⁽¹⁾ = w⁽¹⁾a⁽⁰⁾ + b⁽¹⁾
+Cₖ = (a⁽¹⁾ - y)²
+
+ ∂Cₖ      ∂Cₖ  ∂a⁽¹⁾  ∂z⁽¹⁾  
+----- = ----- ------ ------ 
+∂w⁽¹⁾   ∂a⁽¹⁾ ∂z⁽¹⁾  ∂w⁽¹⁾  
+
+ ∂Cₖ      ∂Cₖ  ∂a⁽¹⁾  ∂z⁽¹⁾  
+----- = ----- ------ ------ 
+∂b⁽¹⁾   ∂a⁽¹⁾ ∂z⁽¹⁾  ∂b⁽¹⁾  
+
+Cₖ = (a⁽¹⁾ - y)² = a⁽¹⁾(a⁽¹⁾ - y) - y(a⁽¹⁾ - y) = a⁽¹⁾² - a⁽¹⁾y - a⁽¹⁾y + y²
+   = a⁽¹⁾² - 2a⁽¹⁾y + y²
+
+ ∂Cₖ 
+----- = 2a⁽¹⁾ - 2y
+∂a⁽¹⁾ 
+
+∂a⁽¹⁾ 
+------ = σ'(z⁽¹⁾)
+∂z⁽¹⁾  
+
+∂z⁽¹⁾
+------ = a⁽⁰⁾
+∂w⁽¹⁾ 
+
+∂z⁽¹⁾  
+------ =  1
+∂b⁽¹⁾  
+
+
+4.
+
+# First define our sigma function.
+sigma = np.tanh
+
+# Next define the feed-forward equation.
+def a1 (w1, b1, a0) :
+  z = w1 * a0 + b1
+  return sigma(z)
+
+# The individual cost function is the square of the difference between
+# the network output and the training data output.
+def C (w1, b1, x, y) :
+  return (a1(w1, b1, x) - y)**2
+
+# This function returns the derivative of the cost function with
+# respect to the weight.
+def dCdw (w1, b1, x, y) :
+  z = w1 * x + b1
+  dCda = 2 * (a1(w1, b1, x) - y) # Derivative of cost with activation
+  dadz = 1/np.cosh(z)**2 # derivative of activation with weighted sum z
+  dzdw = x # derivative of weighted sum z with weight
+  return dCda * dadz * dzdw # Return the chain rule product.
+
+# This function returns the derivative of the cost function with
+# respect to the bias.
+# It is very similar to the previous function.
+# You should complete this function.
+def dCdb (w1, b1, x, y) :
+  z = w1 * x + b1
+  dCda = 2 * (a1(w1, b1, x) - y)
+  dadz = 1/np.cosh(z)**2
+  """ Change the next line to give the derivative of
+      the weighted sum, z, with respect to the bias, b. """
+  dzdb = 1
+  return dCda * dadz * dzdb
+
+"""Test your code before submission:"""
+# Let's start with an unfit weight and bias.
+w1 = 2.3
+b1 = -1.2
+# We can test on a single data point pair of x and y.
+x = 0
+y = 1
+# Output how the cost would change
+# in proportion to a small change in the bias
+print( dCdb(w1, b1, x, y) )
+
+
+5.
+
+# Define the activation function.
+sigma = np.tanh
+
+# Let's use a random initial weight and bias.
+W = np.array([[-0.94529712, -0.2667356 , -0.91219181],
+              [ 2.05529992,  1.21797092,  0.22914497]])
+b = np.array([ 0.61273249,  1.6422662 ])
+
+# define our feed forward function
+def a1 (a0) :
+  # Notice the next line is almost the same as previously,
+  # except we are using matrix multiplication rather than scalar multiplication
+  # hence the '@' operator, and not the '*' operator.
+  z = W @ a0 + b
+  # Everything else is the same though,
+  return sigma(z)
+
+# Next, if a training example is,
+x = np.array([0.7, 0.6, 0.2])
+y = np.array([0.9, 0.6])
+
+# Then the cost function is,
+d = a1(x) - y # Vector difference between observed and expected activation
+C = d @ d # Absolute value squared of the difference.
+
+
+6.
+
+∂a⁽²⁾   ∂a⁽²⁾ ∂z⁽²⁾
+----- = ----- -----
+∂a⁽¹⁾   ∂z⁽²⁾ ∂a⁽¹⁾
+
+a⁽ⁿ⁾ = σ(z⁽ⁿ⁾)
+z⁽ⁿ⁾ = w⁽ⁿ⁾a⁽ⁿ⁻¹⁾ + b⁽ⁿ⁾
+
+∂a⁽ʲ⁾     ∂a⁽ʲ⁾  ∂z⁽ʲ⁾ 
+------- = ----- -------
+∂a⁽ʲ⁻¹⁾   ∂z⁽ʲ⁾ ∂a⁽ʲ⁻¹⁾
+
+∂a⁽ʲ⁾ 
+----- = σ'(z⁽ʲ⁾)
+∂z⁽ʲ⁾ 
+
+ ∂z⁽ʲ⁾ 
+------- = w⁽ʲ⁾
+∂a⁽ʲ⁻¹⁾
+
+∂a⁽ʲ⁾     
+------- = σ'(z⁽ʲ⁾) w⁽ʲ⁾
+∂a⁽ʲ⁻¹⁾   

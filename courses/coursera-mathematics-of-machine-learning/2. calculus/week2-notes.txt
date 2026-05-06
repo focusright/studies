@@ -1,0 +1,300 @@
+PRACTICE QUIZ
+Practicing partial differentiation
+
+1.
+f(x, y) = πx³ + xy² + my⁴, m is a constant, what are ∂f/∂x and ∂f/∂y?
+∂f/∂x = 3πx² + y²
+∂f/∂y = 2xy + 4my³
+
+
+2.
+f(x, y) = x²y + y²z + z²x, what are ∂f/∂x, ∂f/∂y, and ∂f/∂z?
+∂f/∂x = 2xy + z²
+∂f/∂y = x² + 2yz
+∂f/∂z = y² + 2xz
+
+
+3.
+f(x, y, z) = e²ˣsin(y)z² + cos(z)eˣeʸ, what are ∂f/∂x, ∂f/∂y, and ∂f/∂z?
+∂f/∂x = 2e²ˣsin(y)z² + cos(z)eˣeʸ
+∂f/∂y = e²ˣcos(y)z² + cos(z)eˣeʸ
+∂f/∂z = 2e²ˣsin(y)z - sin(z)eˣeʸ
+
+
+4.
+Recall the formula for the total derivative, that is, for 
+f(x,y), x=x(t) and y = y(t), one can calculate df/dt = ∂f/∂x * dx/dt + ∂f/∂y * dy/dt
+
+Given that f(x,y) = πx²y, x(t) = t² + 1, y(t) = t² - 1
+calculate the total derivative df/dt
+
+∂f/∂x = 2πxy
+dx/dt = 2t
+∂f/∂y = πx²
+dy/dt = 2t
+
+df/dt = 2πxy * 2t + πx² * 2t
+      = 2π(t² + 1)(t² - 1)2t + π(t² + 1)²2t
+      = 4πt(t² + 1)(t² - 1) + 2πt(t² + 1)²
+
+
+5.
+Recall the formula for the total derivative, that is, for 
+f(x,y,z), x = x(t), y = y(t) and z = z(t), one can calculate
+df/dt = ∂f/∂x * dx/dt + ∂f/∂y * dy/dt + ∂f/∂z * dz/dt
+
+Given that f(x,y,z) = cos(x)sin(y)e²ᶻ, x(t) = t + 1, y(t) = t - 1, z(t) = t²
+calculate the total derivative df/dt
+
+∂f/∂x = -sin(x)sin(y)e²ᶻ
+dx/dt = 1
+∂f/∂y = cos(x)cos(y)e²ᶻ
+dy/dt = 1
+∂f/∂z = cos(x)sin(y)2e²ᶻ
+dz/dt = 2t
+
+df/dt = -sin(x)sin(y)e²ᶻ * 1 + cos(x)cos(y)e²ᶻ * 1 + cos(x)sin(y)2ze²ᶻ * 2t
+      = -sin(x)sin(y)e²ᶻ + cos(x)cos(y)e²ᶻ + cos(x)sin(y)2e²ᶻ * 2t
+      = -sin(t+1)sin(t-1)e²ᵗ^² + cos(t+1)cos(t-1)e²ᵗ^² + cos(t+1)sin(t-1)2e²ᵗ^² * 2t
+      = e²ᵗ^²[-sin(t+1)sin(t-1) + cos(t+1)cos(t-1) + cos(t+1)sin(t-1)4t]
+      = [-sin(t+1)sin(t-1) + cos(t+1)cos(t-1) + 4t cos(t+1)sin(t-1)]e²ᵗ^²
+
+
+
+
+
+
+
+PRACTICE QUIZ
+Calculating the Jacobian
+
+
+1.
+For f(x, y) = x²y + ¾xy + 10, calculate the Jacobian row vector J.
+J = [∂f/∂x, ∂f/∂y]
+∂f/∂x = 2xy + ¾y
+∂f/∂y = x² + ¾x
+J = [2xy + ¾y, x² + ¾x]
+
+
+2.
+f(x, y) = eˣcos(y) + xe³ʸ - 2
+∂f/∂x = eˣcos(y) + e³ʸ
+∂f/∂y = -eˣsin(y) + 3xe³ʸ
+J = [eˣcos(y) + e³ʸ, -eˣsin(y) + 3xe³ʸ]
+
+
+3.
+f(x, y, z) = eˣcos(y) + x²y²z²
+J = [∂f/∂x, ∂f/∂y, ∂f/∂z]
+∂f/∂x = eˣcos(y) + 2xy²z²
+∂f/∂y = -eˣsin(y) + 2x²yz²
+∂f/∂z = 2x²y²z
+J = [eˣcos(y) + 2xy²z², -eˣsin(y) + 2x²yz², 2x²y²z]
+
+
+4.
+f(x, y, z) = x² + 3eʸeᶻ + cos(x)sin(z)
+calculate the the Jacobian row vector and evaluate at the point (0, 0, 0).
+∂f/∂x = 2x
+∂f/∂y = 3eʸeᶻ
+∂f/∂z = 3eʸeᶻ + cos(x)cos(z)
+J = [2x, 3eʸeᶻ,3eʸeᶻ + cos(x)cos(z)]
+J(0, 0, 0) = [0, 3, 3 + 1] = [0, 3, 4]
+
+
+5.
+f(x, y, z) = xeʸcos(z) + 5x²sin(y)eᶻ
+calculate the the Jacobian row vector and evaluate at the point (0, 0, 0).
+∂f/∂x = eʸcos(z) + 10x sin(y)eᶻ
+∂f/∂y = xeʸcos(z) + 5x²cos(y)eᶻ
+∂f/∂z = -xeʸsin(z) + 5x²sin(y)eᶻ
+J = [eʸcos(z) + 10x sin(y)eᶻ, xeʸcos(z) + 5x²cos(y)eᶻ, -xeʸsin(z) + 5x²sin(y)eᶻ]
+J(0, 0, 0) = [1+0, 0+0, 0+0] = [1, 0, 0]
+
+
+
+
+PRACTICE QUIZ
+Bigger Jacobians!
+
+
+1.
+u(x, y) = x² − y²
+v(x, y) = 2xy
+
+    ⎾ ∂u/∂x  ∂u/∂y ⏋   ⎾ 2x  -2y ⏋
+J = ⎿ ∂v/∂x  ∂v/∂y ⏌ = ⎿ 2y   2x ⏌
+
+
+2.
+u(x, y, z) = 2x + 3y
+v(x, y, z) = cos(x)sin(z)
+w(x, y, z) = eˣeʸeᶻ
+
+    ⎾ ∂u/∂x  ∂u/∂y  ∂u/∂z ⏋   ⎾      2           3         0        ⏋ 
+J = ⏐ ∂v/∂x  ∂v/∂y  ∂v/∂z ⎹  = ⏐ -sin(x)sin(z)    0     cos(x)cos(z) ⎹ 
+    ⎿ ∂w/∂x  ∂w/∂y  ∂w/∂z ⏌   ⎿    eˣeʸeᶻ      eˣeʸeᶻ    eˣeʸeᶻ     ⏌ 
+
+
+3.
+u(x, y) = ax + by
+v(x, y) = cx + dy
+a, b, c, d are all constants
+
+    ⎾ ∂u/∂x  ∂u/∂y ⏋   ⎾ a  b ⏋
+J = ⎿ ∂v/∂x  ∂v/∂y ⏌ = ⎿ c  d ⏌
+
+
+4.
+u(x, y, z) = 9x²y² + zeˣ
+v(x, y, z) = xy + x²y³ + 2z 
+w(x, y, z) = cos(x)sin(z)eʸ
+
+    ⎾ ∂u/∂x  ∂u/∂y  ∂u/∂z ⏋  ⎾     18xy²            18x²y              eˣ      ⏋
+J = ⏐ ∂v/∂x  ∂v/∂y  ∂v/∂z ⎹ = ⏐    y + 2xy³        x + 3x²y²            2       ⎹ 
+    ⎿ ∂w/∂x  ∂w/∂y  ∂w/∂z ⏌  ⎿ -sin(x)sin(z)eʸ  cos(x)sin(z)eʸ  cos(x)cos(z)eʸ ⏌
+
+             | 0  0  1 |
+J(0, 0, 0) = | 0  0  2 | 
+             | 0  0  1 |
+
+
+5.
+x(r, θ, ϕ) = rcos(θ)sin(ϕ)
+y(r, θ, ϕ) = rsin(θ)sin(ϕ)
+z(r, θ, ϕ) = rcos(ϕ)
+
+    ⎾ ∂x/∂r  ∂x/∂θ  ∂x/∂ϕ ⏋  ⎾ cos(θ)sin(ϕ)  -rsin(θ)sin(ϕ)  rcos(θ)cos(ϕ) ⏋
+J = ⏐ ∂y/∂r  ∂y/∂θ  ∂y/∂ϕ ⎹ = ⏐ sin(θ)sin(ϕ)   rcos(θ)sin(ϕ)  rsin(θ)cos(ϕ) ⎹   
+    ⎿ ∂z/∂r  ∂z/∂θ  ∂z/∂ϕ ⏌  ⎿ cos(ϕ)              0          -rcsin(ϕ)    ⏌
+
+
+
+
+
+
+PRACTICE QUIZ
+Calculating Hessians
+
+
+1.
+f(x, y) = x³y + x + 2y
+
+J = [ ∂/∂x  ∂/∂y ] = [ 3x²y + 1    x³ + 2 ]
+
+    ⎾ ∂ₓₓf  ∂ₓᵧf ⏋   ⎾ 6xy  3x² ⏋
+H = ⎿ ∂ᵧₓf  ∂ᵧᵧf ⏌ = ⎿ 3x²   0  ⏌
+
+
+2.
+f(x, y) = eˣcos(y)
+    
+J = [ eˣcos(y)  -eˣsin(y) ]
+
+    ⎾  eˣcos(y)  -eˣsin(y) ⏋
+H = ⎿ -eˣsin(y)  -eˣcos(y) ⏌
+
+
+3.
+f(x, y) = x²/2 + xy + y²/2
+
+J = [ x + y   x + y ]
+ 
+​    ⎾ 1 1 ⏋
+H = ⎿ 1 1 ⏌
+
+Notice something interesting when you calculate
+
+           |x|
+1/2 [x,y] H|y| = ?
+
+
+4.
+f(x, y, z) = x² e⁻ʸ cos(z)
+
+J = [ ∂/∂x  ∂/∂y  ∂/∂z ] = 
+    [ 2xe⁻ʸcos(z)  -x²e⁻ʸcos(z)  -x²e⁻ʸsin(z) ]
+
+    ⎾ ∂ₓₓf  ∂ₓᵧf  ∂ₓ𝓏f ⏋  ⎾ 2e⁻ʸcos(z)    -2xe⁻ʸcos(z)   -2xe⁻ʸsin(z) ⏋
+H = | ∂ᵧₓf  ∂ᵧᵧf  ∂ₓ𝓏f ⎹ = ⏐ -2xe⁻ʸcos(z)   x²e⁻ʸcos(z)    x²e⁻ʸsin(z) ⎹ 
+    ⎿ ∂𝓏ₓf  ∂𝓏ᵧf  ∂𝓏𝓏f ⏌  ⎿ -2xe⁻ʸsin(z)   x²e⁻ʸsin(z)   -x²e⁻ʸcos(z) ⏌
+
+
+5.
+f(x, y, z) = xeʸ + y²cos(z)
+
+J = [ eʸ   xeʸ + 2ycos(z)   -y²sin(z) ]
+
+    ⎾ 0            eʸ          0     ⏋
+H = | eʸ   xeʸ + 2cos(z)   -2ysin(z) ⎹
+    ⎿ 0       -2ysin(z)    -y²cos(z) ⏌
+
+
+
+
+
+QUIZ
+Jacobians and Hessians
+
+
+1.
+Calculate the Jacobian of the function 
+f(x, y, z) = x²cos(y) + eᶻsin(y) 
+and evaluate at the point 
+(x, y, z) = (π, π, 1)
+
+J = [ 2xcos(y)    -x²sin(y) + eᶻcos(y)    eᶻsin(y) ]
+
+J(π, π, 1) = [ 2πcos(π)    -π²sin(π) + ecos(π)    esin(π) ]
+           = [ -2π  -e  0 ]
+
+
+2.
+Calculate the Jacobian of the vector valued functions:
+u(x, y) = x²y - cos(x)sin(y)
+v(x, y) = eˣ⁺ʸ
+and evaluate at the point (0, π)
+
+    | ∂u/∂x  ∂u/∂y |   | 2xy + sin(x)sin(y)    x² - cos(x)cos(y) |
+J = | ∂v/∂x  ∂v/∂y | = |       eˣ⁺ʸ                   eˣ⁺ʸ       |
+          | 0     1  |
+J(0, π) = | e^π  e^π |
+
+
+3.
+Calculate the Hessian for the function
+f(x, y) = x³cos(y) − xsin(y)
+
+J = [ 3x²cos(y) − sin(y)    -x³sin(y) − xcos(y) ]
+
+    ⎾ ∂ₓₓf  ∂ₓᵧf ⏋   ⎾  6xcos(y)               -3x²sin(y) − cos(y) ⏋
+H = ⎿ ∂ᵧₓf  ∂ᵧᵧf ⏌ = ⎿ -3x²sin(y) − cos(y)     -x³cos(y) + xsin(y) ⏌
+
+
+
+4.
+Calculate the Hessian for the function 
+f(x, y, z) = xy + sin(y)sin(z) + z³eˣ
+
+J = [ y + z³eˣ    x + cos(y)sin(z)    sin(y)cos(z) + 3z²eˣ]
+
+    | ∂ₓₓf  ∂ₓᵧf  ∂ₓ𝓏f |   | z³eˣ            1                  3z²eˣ       |
+H = | ∂ᵧₓf  ∂ᵧᵧf  ∂ₓ𝓏f | = |  1        -sin(y)sin(z)        cos(y)cos(z)    |
+    | ∂𝓏ₓf  ∂𝓏ᵧf  ∂𝓏𝓏f |   | 3z²eˣ     cos(y)cos(z)    -sin(y)sin(z) + 6zeˣ |
+
+
+5.
+Calculate the Hessian for the function 
+f(x, y, z) = xycos(z) − sin(x)eʸz³
+and evaluate at the point (x, y, z) = (0, 0, 0)
+
+J = [ ycos(z) − cos(x)eʸz³    xcos(z) − sin(x)eʸz³    -xysin(z) − 3z²sin(x)eʸ ]
+
+    | sin(x)eʸz³                  cos(z) − cos(x)eʸz³    -ysin(z) − 3z²cos(x)eʸ  |
+H = | cos(z) − cos(x)eʸz³             −sin(x)eʸz³         -xsin(z) − 3z²sin(x)eʸ |
+    | -ysin(z) − 3z²cos(x)eʸ    -xsin(z) − 3z²sin(x)eʸ    -xycos(z) − 6zsin(x)eʸ |
+
+             | 0  1  0 | 
+H(0, 0, 0) = | 1  0  0 |
+             | 0  0  0 |

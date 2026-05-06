@@ -1,0 +1,17 @@
+|a b||x|   |ax + by|
+|c d||y| = |cx + dy|
+
+|a b| |⎾ |1|    |0|⏋      |a b||1|    |a b||0|      |a|    |b|     |ax + by|
+|c d| |⎿x|0| + y|1|⏌  =  x|c d||0| + y|c d||1|  =  x|c| + y|d|  =  |cx + dy|
+
+          |a b||1|                               |a|
+Take just |c d||0| for example, it ends up being |c|, that means a basis unit vector x
+has been lifted out of its single dimension and taken into the 2nd dimension with
+the new y value scaled by c. At the same time the x value also was scaled by a.
+
+         |a b||0|               |b|
+Now take |c d||1|, this becomes |d|, so the basis unit vector y also gets upgraded
+with a 2nd dimension and scaled in the 1st, these two new vectors when added together
+yields the resulting vector |a + b|
+                            |c + d|
+                                                                  

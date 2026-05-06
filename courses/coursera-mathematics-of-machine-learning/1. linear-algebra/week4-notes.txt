@@ -1,0 +1,70 @@
+PRACTICE QUIZ
+Mappings to spaces with different numbers of dimensions
+Help: https://www.coursera.org/learn/linear-algebra-machine-learning/discussions/weeks/4/threads/gdCtVjnEEeiBUQoF1LTk2A
+
+1.
+r' = r + λŝ
+r₃' = 0 
+r' . ê₃ = 0
+r . ê₃ + λs₃ = 0
+
+λs₃ = -(r . ê₃)
+    -(r . ê₃)
+λ = ----------
+        s₃
+              r . ê₃                ŝ(r . ê₃)
+r'   =   r - -------- * ŝ   =   r - ---------
+                s₃                      s₃ 
+
+2.
+r' = r - ŝ(r . ê₃)/s₃ 
+r . ê₃ = r₃
+r' = r - ŝr₃/s₃
+4 Choices:
+rᵢ' = rᵢ - sᵢr₃/s₃
+rᵢ' = rᵢ - sᵢ[ê₃]ⱼrⱼ/s₃
+rᵢ' = (Iᵢⱼ - sᵢI₃ⱼ/s₃)rⱼ
+rᵢ' = (Iᵢⱼ - sᵢ[ê₃]ⱼ/s₃)rⱼ
+     |0|           |1 0 0|
+ê₃ = |0|       I = |0 1 0|   Iᵢⱼ = { 1: i=j, 0: i≠j}
+     |1|           |0 0 1|
+[ê₃]ⱼ = { 1: i=j, 0: i≠j }
+From staff example:
+rᵢ' = (Iᵢⱼ - sᵢ[ê₃]ⱼ/s₃)rⱼ
+rᵢ' = Iᵢⱼrⱼ - (sᵢ/s₃)[ê₃]ⱼrⱼ
+I₁ⱼrⱼ = I₁₁r₁ + I₁₂r₂ + I₁₃r₃ = r₁ + 0 + 0 = r₁
+[ê₃]ⱼrⱼ = [ê₃]₁r₁ + [ê₃]₂r₂ + [ê₃]₃r₃ = 0 + 0 + r₃ = r₃
+r₁' = r₁ - (s₁/s₃)r₃
+All choices seems to be the same, just in different forms
+
+3.
+Ar = r'
+A is 2 x 3
+r is 3 x 1      [2 x 3][3 x 1] = [2 x 1]
+r' is 2 x 1
+                 |r₁|
+r' = |r₁'|   r = |r₂|
+     |r₂'|       |r₃|
+rᵢ' = Iᵢⱼrⱼ - (sᵢ/s₃)[ê₃]ⱼrⱼ (from question 2)
+r₁' = r₁ - (s₁/s₃)r₃
+r₂' = r₂ - (s₂/s₃)r₃
+r₃' = r₃ - (s₃/s₃)r₃ = 0
+  A               r   =  r'
+| 1   0  -s₁/s₃ ||r₁|   |r₁'|
+| 0   1  -s₂/s₃ ||r₂| = |r₂'|
+| 0   0     0   ||r₃|   |r₃'|
+    | 1   0  -s₁/s₃ |
+A = | 0   1  -s₂/s₃ |
+    | 0   0     0   | (omitted in the answer)
+
+4.
+A3 = [0, 0, 0]
+From question 3 answer
+
+5.
+See sunray5.py
+
+6.
+See sunray6.py
+
+

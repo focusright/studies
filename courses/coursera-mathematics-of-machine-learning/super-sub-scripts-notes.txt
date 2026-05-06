@@ -1,0 +1,83 @@
+super and sub script numbers: ⁰ ¹ ² ³ ⁴ ⁵ ⁶ ⁷ ⁸ ⁹ ⁺ ⁻ ⁼ ⁽ ⁾ ᐟ ⸍ 𝄍 ₀ ₁ ₂ ₃ ₄ ₅ ₆ ₇ ₈ ₉ ₊ ₋ ₌ ₍ ₎ ⸝
+superscript alphabet        : ᵃ ᵇ ᶜ ᵈ ᵉ ᶠ ᵍ ʰ ⁱ ʲ ᵏ ˡ ᵐ ⁿ ᵒ ᵖ ʳ ˢ ᵗ ᵘ ᵛ ʷ ˣ ʸ ᶻ ᴬ ᴮ ᴰ ᴱ ᴳ ᴴ ᴵ ᴶ ᴷ ᴸ ᴹ ᴺ ᴼ ᴾ ᴿ ᵀ ᵁ ⱽ ᵂ
+subscript alphabet          : ₐ ᵦ 𝒸 𝒹 ₑ 𝒻 𝓰 ₕ ᵢ ⱼ ₖ ₗ ₘ ₙ ₒ ₚ ᵩ ᵣ ₛ ₜ ᵤ ᵥ 𝓌 ₓ ᵧ 𝓏
+Greek                       : ᵅ ᵝ ᵞ ᵟ ᵋ ᶿ ᶥ ᶲ ᵠ ᵡ ᵦ ᵧ ᵨ ᵩ ᵪ
+Fractions                   : ½ ⅓ ⅔ ¼ ¾ ⅕ ⅖ ⅗ ⅘ ⅙ ⅚ ⅐ ⅛ ⅜ ⅝ ⅞ ⅑ ⅒
+Fraction slash              : ⁄
+square root                 : √
+Pi                          : π
+Partial derivative          : ∂
+x approaches infinity       : x → ∞
+
+∑
+∞
+≈
+Δ
+∇
+λ
+ê
+ŝ
+‖
+θ
+
+⎾  ⏋
+⎿  ⏌
+⏐
+⎸
+⎹
+…
+
+u₁v₁ + u₂v₂ = ‖u‖‖v‖ cos θ
+
+use .round(x) on a numpy matrix to make it look nice
+x = number of decimal precision
+
+¹⁄₂
+
+ d
+---- [sin(x)] = cos(x)
+ dx 
+
+ d
+---- [cos(x)] = −sin(x)
+ dx   
+
+
+cos(0) = 1       sin(0) = 0    
+cos(π/2) = 0     sin(π/2) = 1  
+cos(π) = -1      sin(π) = 0    
+cos(3π/2) 0      sin(3π/2) = -1
+
+ 
+    
+     
+     
+
+
+
+
+f(x) = x²
+
+lim           f(x + h) - f(x)
+h → 0  f(x) = ---------------
+                    h
+
+              (x + h)² - x² 
+            = ---------------
+                    h
+
+              x² + 2xh + h² - x²
+            = ------------------
+                      h
+
+              2xh + h²
+            = --------
+                  h
+
+              h (2x + h)
+            = ----------
+                  h
+
+            = 2x + h (h goes to 0)
+
+            = 2x

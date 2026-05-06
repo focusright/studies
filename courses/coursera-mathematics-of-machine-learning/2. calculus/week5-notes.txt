@@ -1,0 +1,7 @@
+PRACTICE QUIZ
+Lagrange multipliers
+
+1. In this quiz we will consider Lagrange multipliers as a technique to find a minimum of a function subject to a constraint, 
+i.e. solutions lying on a particular curve.
+
+Let's consider the example of finding the minimum of the function,

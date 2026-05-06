@@ -1,0 +1,315 @@
+MACLAURIN SERIES
+
+        ∞  f⁽ⁿ⁾(0)   
+g(x) =  ∑  ------- xⁿ
+       n=0   n!      
+
+
+TAYLOR SERIES
+
+        ∞  f⁽ⁿ⁾(p)         
+g(x) =  ∑  ------- (x - p)ⁿ
+       n=0   n!            
+
+
+
+PRACTICE QUIZ, 5 QUESTIONS
+APPLYING THE TAYLOR SERIES
+
+1.
+
+For the function f(x) = e^x² about x = 0, using the the Maclaurin series formula,
+obtain an approximation up to the first three non zero terms.
+
+f⁽⁰⁾(x) = e^x²
+f⁽¹⁾(x) = 2xe^x²
+f⁽²⁾(x) = 4x²e^x² + 2e^x²   (use the product rule)
+f⁽³⁾(x) = 8xe^x² + 8x³e^x² + 4xe^x²
+f⁽⁴⁾(x) = 16x²e^x² + 8e^x² + 16x⁴e^x² + 24x²e^x² + 8x²e^x² + 4e^x²
+
+        4  f⁽ⁿ⁾(0)      f⁽⁰⁾(0)      f⁽¹⁾(0)      f⁽²⁾(0)      f⁽³⁾(0)      f⁽⁴⁾(0)   
+g(x) =  ∑  ------- xⁿ = ------- x⁰ + ------- x¹ + ------- x² + ------- x³ + ------- x⁴
+       n=0   n!           0!           1!           2!           3!           4!      
+
+        e^0²       2(0)e^0²     (4(0)² + 2)e^0²        8(0)e^0² + 8(0)³(0)^² + 4(0)e^0²      16(0)²e^0² + 8e^0² + 16(0)⁴e^0² + 24(0)²e^0² + 8(0)²e^0² + 4e^0²
+     = ------- 1 + -------- x + --------------- x² + ---------------------------------- x³ + ---------------------------------------------------------------- x⁴
+          1           1               2                               3!                                                      4!
+
+                        0 + 8 + 0 + 0 + 0 + 4            12
+     = 1 + 0 + x² + 0 + --------------------- = 1 + x² + -- x⁴ = 1 + x² + x⁴/2
+                                 24                      24
+
+
+2.
+
+Use the Taylor series formula to approximate the first three terms of the function f(x) = 1/x
+expanded around the point p = 4.
+
+f⁽⁰⁾(x) = x⁻¹
+f⁽¹⁾(x) = -x⁻²
+f⁽²⁾(x) = x⁻³
+
+        2  f⁽ⁿ⁾(4)            f⁽⁰⁾(4)            f⁽¹⁾(4)            f⁽²⁾(4)         
+g(x) =  ∑  ------- (x - 4)ⁿ = ------- (x - 4)⁰ + ------- (x - 4)¹ + ------- (x - 4)²
+       n=0   n!                 0!                 1!                 2!            
+
+        4⁻¹      -4⁻²             4⁻³              1     x - 4     (x - 4)²
+     = ----- 1 + ----- (x - 4) + ----- (x - 4)² = --- - ------- + ----------
+         1         1               2               4       16         64
+
+
+3.
+
+By finding the first three terms of the Taylor series shown above for the function 
+f(x) = ln(x) (green line) about x = 10
+determine the difference of using the second order taylor expansion against the first order 
+Taylor expansion when approximating to find the value of f(2).
+
+f⁽⁰⁾(x) = ln(x)
+f⁽¹⁾(x) = x⁻¹
+f⁽²⁾(x) = -x⁻²
+
+        2  f⁽ⁿ⁾(10)            f⁽⁰⁾(10)            f⁽¹⁾(10)            f⁽²⁾(10)         
+g(x) =  ∑  ------- (x - 10)ⁿ = ------- (x - 10)⁰ + ------- (x - 10)¹ + ------- (x - 10)²
+       n=0   n!                  0!                  1!                  2!             
+
+       ln(10)      x - 10     (x - 10)²              x - 10    (x - 10)²
+     = ------ 1 + -------- - ----------- = ln(10) + -------- - ---------
+        1            10         2 * 10²                10         200   
+
+                             x - 10          2 - 10          
+first order f(2) = ln(10) + -------- ≈ 2.3 + ------ = 2.3 - 4/5 = 2.3 - 0.8 = 1.5
+                               10              10
+
+                              x - 10    (x - 10)²         (2 - 10)²         64
+second order f(2) = ln(10) + -------- - --------- = 1.5 - --------- = 1.5 - --- = 1.5 - 0.32 = 1.18
+                                10         200               200            200
+
+Δf(2) = 1.5 - 1.18 = 0.32
+
+
+
+4.
+
+In some cases, a Taylor series can be expressed in a general equation that allows us 
+to find a particular nth term of our series. For example the function f(x) = eˣ
+has the general equation 
+        ∞   xⁿ
+f(x) =  ∑  ----
+       n=0  n!    
+therefore if we want to find the 3rd term in our Taylor series, subsitituting n = 2 into
+the general equation gives us the term x²/2. We know the Taylor series of the function eˣ is
+f(x) = 1 + x + x²/2 + x³/3! + ....
+Now let us try a further working example of using general equations with Taylor series.
+By evaluating the function 
+           1
+f(x) = ---------
+        (1 - x)²
+about the origin x = 0, determine which general equation for the nth order term correctly represents f(x).
+
+
+        ∞  f⁽ⁿ⁾(p)             5  f⁽ⁿ⁾(0)      f⁽⁰⁾(0)      f⁽¹⁾(0)      f⁽²⁾(0)      f⁽³⁾(0)      f⁽⁴⁾(0)      f⁽⁵⁾(0)     
+f(x) =  ∑  ------- (x - p)ⁿ ≈  ∑  ------- xⁿ = ------- x⁰ + ------- x¹ + ------- x² + ------- x³ + ------- x⁴ + ------- x⁵  
+       n=0   n!               n=0   n!           0!           1!           2!           3!           4!           5!        
+
+Use these!
+https://www.derivative-calculator.net/
+https://www.wolframalpha.com/calculators/derivative-calculator/
+
+f⁽⁰⁾(x) = 1/(1 - x)²
+f⁽¹⁾(x) = 2/(1 - x)³
+f⁽²⁾(x) = 6/(1 - x)⁴
+f⁽³⁾(x) = 24/(1 - x)⁵
+f⁽⁴⁾(x) = 120/(1 - x)⁶
+f⁽⁵⁾(x) = 720/(1 - x)⁷
+
+       1/(1 - 0)²      2/(1 - 0)³      6/(1 - 0)⁴      24/(1 - 0)⁵      120/(1 - 0)⁶      720/(1 - 0)⁷     
+f(x) = ---------- x⁰ + ---------- x¹ + ---------- x² + ----------- x³ + ------------ x⁴ + ------------ x⁵  
+           0!              1!              2!              3!                4!                5!        
+
+                                            ∞   
+     = x⁰ + 2x¹ + 3x² + 4x³ + 5x⁴ + 6x⁵ =   ∑  (1 + n) xⁿ
+                                           n=0 
+
+
+
+5.
+
+By evaluating the function f(x) = √(4 − x) at x = 0, find the quadratic equation that approximates this function.
+
+Using the Maclaurin series
+
+        ∞  f⁽ⁿ⁾(0)   
+g(x) =  ∑  ------- xⁿ
+       n=0   n!      
+
+Do like 5 terms
+
+f⁽⁰⁾(x) = (4 − x)^(1/2)
+f⁽¹⁾(x) = -1/(2(4 − x)^(1/2))
+f⁽²⁾(x) = -1/(4(4 − x)^(3/2))
+f⁽³⁾(x) = -3/(8(4 − x)^(5/2))
+f⁽⁴⁾(x) = -15/(16(4 − x)^(7/2))
+
+ 4  f⁽ⁿ⁾(0)      f⁽⁰⁾(0)      f⁽¹⁾(0)      f⁽²⁾(0)      f⁽³⁾(0)      f⁽⁴⁾(0)     
+ ∑  ------- xⁿ = ------- x⁰ + ------- x¹ + ------- x² + ------- x³ + ------- x⁴  
+n=0   n!           0!           1!           2!           3!           4!        
+
+  √4       1/(2√4)       1/(4(√4)³)       3/(8(√4)⁵)       15/(16(√4)⁷)
+= --- x⁰ - ------- x¹ - ----------- x² - ----------- x³ - ------------- x⁴  
+   1          1              2                6                24        
+
+   2       1/(2(2))       1/(4(2)³)       3/(8(2)⁵)       15/(16(2)⁷)
+= --- 1 - ------- x¹ - ----------- x² - ----------- x³ - ------------- x⁴  
+   1          1              2                6                24        
+
+       x     1/32        3/256       15/2048
+= 2 - --- - ------ x² - ------- x³ - -------- x⁴  
+       4      2            6            24        
+
+= 2 - x/4 - x²/64 - x³/512 - x⁴/16384
+
+
+
+
+PRACTICE QUIZ, 5 QUESTIONS
+2D TAYLOR SERIES
+
+
+4.
+
+Recall that up to second order the multivariate Taylor series is given by
+f(X + ΔX) = f(X) + J𝒻ΔX + ½ΔXᵀH𝒻ΔX + …
+Consider the function of 2 variables
+f(x, y) = xy²e^(-x⁴-y²/2)
+Which of the following is the first order Taylor series expansion of f around the point (-1,2)?
+
+Shown in the lecture video:
+f(x + Δx, y + Δy) = 
+f(x, y)                                                |Δx|
++ (∂ₓf(x,y)Δx + ∂ᵧf(x,y)Δy)  =>  [∂ₓf(x,y) + ∂ᵧf(x,y)] |Δy|  =>  J𝒻ΔX 
+                                                                       |∂ₓₓf(x,y) ∂ₓᵧf(x,y)||Δx|
++ ½ (∂ₓₓf(x,y)Δx² + 2∂ₓᵧf(x,y)ΔxΔy + ∂ᵧᵧf(x,y)Δy²)    =>    ½ [Δx, Δy] |∂ᵧₓf(x,y) ∂ᵧᵧf(x,y)||Δy|  =>  ½ ΔXᵀH𝒻ΔX
+
+Take one form of it
+                                        |Δx|              |∂ₓₓf(x,y) ∂ₓᵧf(x,y)||Δx|
+f(x + Δx, y + Δy) = ∂ₓf(x,y) + ∂ᵧf(x,y) |Δy| + ½ [Δx, Δy] |∂ᵧₓf(x,y) ∂ᵧᵧf(x,y)||Δy|
+
+and apply it to the problem
+
+f(x, y) = xy²e^(-x⁴-y²/2)
+∂ₓf(x,y) = (1 - 4 x⁴) y² e^(-x⁴ - y²/2)
+∂ᵧf(x,y) =  x y (y² - 2) (-e^(-x⁴ - y²/2))
+∂ₓₓf(x,y) = 4 x³ (4 x⁴ - 5) y² e^(-x⁴ - y²/2)
+∂ₓᵧf(x,y) = (4 x⁴ - 1) y (y² - 2) e^(-x⁴ - y²/2)
+∂ᵧₓf(x,y) = (4 x⁴ - 1) y (y² - 2) e^(-x⁴ - y²/2)
+∂ᵧᵧf(x,y) = x (y⁴ - 5 y² + 2) e^(-x⁴ - y²/2)
+                                              
+f(x+Δx, y+Δy) = x y² e^(-x⁴-y²/2) + 
+                                                                               |Δx|   
+                [(1 - 4 x⁴) y² e^(-x⁴ - y²/2) + x y (y² - 2) (-e^(-x⁴ - y²/2)] |Δy| + 
+
+                           |4 x³ (4 x⁴ - 5) y² e^(-x⁴ - y²/2)        (4 x⁴ - 1) y (y² - 2) e^(-x⁴ - y²/2)||Δx|
+                ½ [Δx, Δy] |(4 x⁴ - 1) y (y² - 2) e^(-x⁴ - y²/2)     x (y⁴ - 5 y² + 2) e^(-x⁴ - y²/2)    ||Δy|
+
+f(-1+Δx, 2+Δy) = (-1) 2² e^(-(-1)⁴-2²/2) + 
+                                                                                            |Δx|   
+                 [(1 - 4 (-1)⁴) 2² e^(-(-1)⁴ - 2²/2) + (-1) 2 (2² - 2) (-e^(-(-1)⁴ - 2²/2)] |Δy| + 
+
+                            |4 (-1)³ (4 (-1)⁴ - 5) 2² e^(-(-1)⁴ - 2²/2)     (4 (-1)⁴ - 1) 2 (2² - 2) e^(-(-1)⁴ - 2²/2)||Δx|
+                 ½ [Δx, Δy] |(4 (-1)⁴ - 1) 2 (2² - 2) e^(-(-1)⁴ - 2²/2)     (-1) (2⁴ - 5*2² + 2) e^(-(-1)⁴ - 2²/2)    ||Δy|
+
+                                        |Δx|              |16e⁻³  12e⁻³||Δx|
+               = -4e⁻³ + [-12e⁻³ + 4e⁻³]|Δy| + ½ [Δx, Δy] |12e⁻³  2e⁻³ ||Δy|
+
+                                                       |16e⁻³  12e⁻³||Δx|
+               = -4e⁻³ - 12e⁻³Δx + 4e⁻³Δy + ½ [Δx, Δy] |12e⁻³  2e⁻³ ||Δy|
+ 
+
+5.
+
+Now consider the function f(x, y) = sin(πx − x²y)
+What is the Hessian matrix H𝒻 that is associated with the 
+second order term in the Taylor expansion of f around (1, π)?
+
+∂ₓf(x,y) = (π - 2 x y) cos(x (π - x y))
+∂ᵧf(x,y) = -x² cos(x (π - x y))
+
+∂ₓₓf(x, y) = (π - 2 x y)² (-sin(x (π - x y))) - 2 y cos(x (π - x y))
+∂ᵧₓf(x, y) = x (x (π - 2 x y) sin(x (π - x y)) - 2 cos(x (π - x y)))
+∂ₓᵧf(x, y) = x (x (π - 2 x y) sin(x (π - x y)) - 2 cos(x (π - x y)))
+∂ᵧᵧf(x, y) = -x⁴ sin(x (π - x y))
+
+∂ₓₓf(1, π) = (π - 2 1 π)² (-sin(1 (π - 1 π))) - 2 π cos(1 (π - 1 π)) = -2π
+∂ᵧₓf(1, π) = 1 (1 (π - 2 1 π) sin(1 (π - 1 π)) - 2 cos(1 (π - 1 π))) = -2
+∂ₓᵧf(1, π) = 1 (1 (π - 2 1 π) sin(1 (π - 1 π)) - 2 cos(1 (π - 1 π))) = -2
+∂ᵧᵧf(1, π) = -1⁴ sin(1 (π - 1 π)) = 0
+
+     |∂ₓₓf(x,y) ∂ₓᵧf(x,y)|   |-2π -2 |
+H𝒻 = |∂ᵧₓf(x,y) ∂ᵧᵧf(x,y)| = | -2  0 |
+
+
+
+
+
+
+
+
+
+
+
+
+NEWTON–RAPHSON METHOD
+https://en.wikipedia.org/wiki/Newton%27s_method
+
+The equation of the tangent line to the curve y = f(x) at x = xₙ is
+
+y = f'(xₙ)(x - xₙ) + f(xₙ)
+
+The x-intercept of this line (the value of x which makes y = 0) is then used as 
+the next approximation to the root, xn + 1. Setting y to zero and x to xn + 1 gives
+
+0 = f'(xₙ)(xₙ₊₁ - xₙ) + f(xₙ)
+
+solving for xₙ₊₁ gives
+
+            f(xₙ)
+xₙ₊₁ = xₙ - -------
+            f'(xₙ)
+
+*Steps : 0 = f'(xₙ)(xₙ₊₁ - xₙ) + f(xₙ)
+         -f'(xₙ)(xₙ₊₁ - xₙ) = f(xₙ)
+         -(xₙ₊₁ - xₙ) = f(xₙ)/f'(xₙ)
+         -xₙ₊₁ + xₙ = f(xₙ)/f'(xₙ)
+         xₙ₊₁ - xₙ = -f(xₙ)/f'(xₙ)
+         xₙ₊₁ ₙ = -f(xₙ)/f'(xₙ) + xₙ
+         xₙ₊₁ ₙ = xₙ - f(xₙ)/f'(xₙ)
+
+
+QUIZ, 6 QUESTIONS
+TAYLOR SERIES ASSESSMENT
+
+1.
+
+f(x) = x⁶/6 - 3x⁴ - 2x³/3 + 27x²/2 + 18x - 30
+f'(x) = x⁵ - 12x³ - 2x² + 27x + 18
+      = x**5 - 12*x**3 - 2*x**2 + 27*x + 18
+
+
+2.
+
+We'll first try to find the location of the root near x = 1.
+By using x₀ = 1 as a starting point and calculating -f(1)/f'(1)
+by hand, find the first iteration of the Newton-Raphson method, i.e., find x₁
+Give your answer to 3 decimal places.
+
+x₁ = x₀ - f(1)/f'(1)
+   = 1 - -2/32
+   = 1 + 1/16
+   = 1 + 0.0625
+   = 1.0625
+   ≈ 1.063
+
+
+3.
+
